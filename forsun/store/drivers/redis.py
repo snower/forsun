@@ -47,28 +47,34 @@ class RedisStore(Store):
         return "%s:%s" % (self.prefix, key)
 
     @gen.coroutine
-    def store_plan(self, plan):
-        key = plan.key
-        yield self.db.sadd(self.get_key("keys"), key)
-        res = yield self.db.set(self.get_key("key:%s" % key), plan.dupms(), expire = int(plan.next_time - time.time() + 30))
-        raise gen.Return(res)
-
-    @gen.coroutine
-    def has_key(self, key):
-        res = yield self.db.sismember(self.get_key("keys"), key)
-        raise gen.Return(res)
-
-    @gen.coroutine
-    def load_plan(self, key):
-        res = yield self.db.get(self.get_key("key:%s" % key))
-        if res:
-            res = Plan.loads(res)
+    def add_plan(self, plan):
+        res = yield self.db.set(self.get_key("key:%s" % plan.key), plan.dupms(), expire = int(plan.next_time - time.time() + 30))
         raise gen.Return(res)
 
     @gen.coroutine
     def remove_plan(self, key):
         res = yield self.db.delete(self.get_key("key:%s" % key))
-        yield self.db.srem(self.get_key("keys"), key)
+        raise gen.Return(res)
+
+    @gen.coroutine
+    def has_plan(self, key):
+        res = yield self.db.exists(self.get_key("key:%s" % key))
+        raise gen.Return(bool(res))
+
+    @gen.coroutine
+    def store_plan(self, plan):
+        res = yield self.db.set(self.get_key("key:%s" % plan.key), plan.dupms(), expire = int(plan.next_time - time.time() + 30))
+        raise gen.Return(res)
+
+    @gen.coroutine
+    def load_plan(self, key):
+        res = yield self.db.get(self.get_key("key:%s" % key))
+        if not res:
+            raise gen.Return(None)
+        try:
+            res = Plan.loads(res)
+        except:
+            res = None
         raise gen.Return(res)
 
     @gen.coroutine
@@ -83,10 +89,17 @@ class RedisStore(Store):
         res = res or {}
         results = {}
         for key, plan in res.iteritems():
-            results[key] = Plan.loads(plan)
+            try:
+                results[key] = Plan.loads(plan)
+            except:pass
         raise gen.Return(results)
 
     @gen.coroutine
     def remove_time_plan(self, plan):
         res = yield self.db.hdel(self.get_key("time:%s" % plan.next_time), plan.key)
+        raise gen.Return(res)
+
+    @gen.coroutine
+    def get_plan_keys(self, prefix=""):
+        res = yield self.db.keys(self.get_key("key:*" % prefix))
         raise gen.Return(res)

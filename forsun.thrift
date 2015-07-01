@@ -23,13 +23,12 @@ struct ForsunPlan {
 }
 
 service Forsun{
-    void ping(),
-    ForsunPlan create(1:string key, 2:i16 second, 3:i16 minute = -1, 4:i16 hour = -1, 5:i16 day = -1, 6:i16 month = -1, 7:i16 week = -1, 8:string action="shell", 9:string params="{}") throws (1:ForsunPlanError err),
-    ForsunPlan createTimeout(1:string key, 2:i16 second, 3:i16 minute = -1, 4:i16 hour = -1, 5:i16 day = -1, 6:i16 month = -1, 7:i16 week = -1, 8:i16 count=0, 9:string action="shell", 10:string params="{}") throws (1:ForsunPlanError err),
+    i16 ping(),
+    ForsunPlan create(1:string key, 2:i16 second, 3:i16 minute = -1, 4:i16 hour = -1, 5:i16 day = -1, 6:i16 month = -1, 7:i16 week = -1, 8:string action="shell", 9:list<string> params="") throws (1:ForsunPlanError err),
+    ForsunPlan createTimeout(1:string key, 2:i16 second, 3:i16 minute = -1, 4:i16 hour = -1, 5:i16 day = -1, 6:i16 month = -1, 7:i16 week = -1, 8:i16 count=0, 9:string action="shell", 10:list<string> params="") throws (1:ForsunPlanError err),
     ForsunPlan remove(1:string key) throws (1:ForsunPlanError err),
     ForsunPlan get(1:string key) throws (1:ForsunPlanError err),
-    list<ForsunPlan> getCurrent() throws (1:ForsunPlanError err),
-    list<ForsunPlan> getNext(),
+    list<ForsunPlan> getCurrent(),
     list<ForsunPlan> getTime(1:i32 timestamp),
-    list<string> getKeys()
+    list<string> getKeys(1:string prefix)
 }

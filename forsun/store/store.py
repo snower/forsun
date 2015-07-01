@@ -6,19 +6,23 @@ from tornado import gen
 
 class Store(object):
     @gen.coroutine
-    def store_plan(self, plan):
-        raise NotImplementedError()
-
-    @gen.coroutine
-    def has_key(self, key):
-        raise NotImplementedError()
-
-    @gen.coroutine
-    def load_plan(self, key):
+    def add_plan(self, plan):
         raise NotImplementedError()
 
     @gen.coroutine
     def remove_plan(self, key):
+        raise NotImplementedError()
+
+    @gen.coroutine
+    def has_plan(self, key):
+        raise NotImplementedError()
+
+    @gen.coroutine
+    def store_plan(self, plan):
+        raise NotImplementedError()
+
+    @gen.coroutine
+    def load_plan(self, key):
         raise NotImplementedError()
 
     @gen.coroutine
@@ -31,4 +35,8 @@ class Store(object):
 
     @gen.coroutine
     def remove_time_plan(self, plan):
+        raise NotImplementedError()
+
+    @gen.coroutine
+    def get_plan_keys(self, prefix=""):
         raise NotImplementedError()

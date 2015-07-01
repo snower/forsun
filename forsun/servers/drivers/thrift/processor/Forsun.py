@@ -71,9 +71,6 @@ class Iface(object):
     def getCurrent(self):
         pass
 
-    def getNext(self):
-        pass
-
     def getTime(self, timestamp):
         """
         Parameters:
@@ -81,7 +78,11 @@ class Iface(object):
         """
         pass
 
-    def getKeys(self):
+    def getKeys(self, prefix):
+        """
+        Parameters:
+         - prefix
+        """
         pass
 
 
@@ -117,7 +118,9 @@ class Client(Iface):
         result = ping_result()
         yield gen.Task(result.read, self._iprot)
         yield gen.Task(self._iprot.readMessageEnd)
-        return
+        if result.success is not None:
+          raise gen.Return(result.success)
+        raise TApplicationException(TApplicationException.MISSING_RESULT, "ping failed: unknown result");
 
     @gen.coroutine
     def create(self, key, second, minute, hour, day, month, week, action, params):
@@ -324,38 +327,7 @@ class Client(Iface):
         yield gen.Task(self._iprot.readMessageEnd)
         if result.success is not None:
           raise gen.Return(result.success)
-        if result.err is not None:
-          raise gen.Return(result.err)
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getCurrent failed: unknown result");
-
-    @gen.coroutine
-    def getNext(self):
-        self._seqid += 1
-        self.send_getNext()
-        result = yield self.recv_getNext()
-        raise gen.Return(result)
-
-    def send_getNext(self):
-        self._oprot.writeMessageBegin('getNext', TMessageType.CALL, self._seqid)
-        args = getNext_args()
-        args.write(self._oprot)
-        self._oprot.writeMessageEnd()
-        self._oprot.trans.flush()
-
-    @gen.coroutine
-    def recv_getNext(self):
-        (fname, mtype, rseqid) = yield gen.Task(self._iprot.readMessageBegin)
-        if mtype == TMessageType.EXCEPTION:
-          x = TApplicationException()
-          yield gen.Task(x.read, self._iprot)
-          yield gen.Task(self._iprot.readMessageEnd)
-          raise x
-        result = getNext_result()
-        yield gen.Task(result.read, self._iprot)
-        yield gen.Task(self._iprot.readMessageEnd)
-        if result.success is not None:
-          raise gen.Return(result.success)
-        raise TApplicationException(TApplicationException.MISSING_RESULT, "getNext failed: unknown result");
 
     @gen.coroutine
     def getTime(self, timestamp):
@@ -392,15 +364,20 @@ class Client(Iface):
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getTime failed: unknown result");
 
     @gen.coroutine
-    def getKeys(self):
+    def getKeys(self, prefix):
+        """
+        Parameters:
+         - prefix
+        """
         self._seqid += 1
-        self.send_getKeys()
+        self.send_getKeys(prefix)
         result = yield self.recv_getKeys()
         raise gen.Return(result)
 
-    def send_getKeys(self):
+    def send_getKeys(self, prefix):
         self._oprot.writeMessageBegin('getKeys', TMessageType.CALL, self._seqid)
         args = getKeys_args()
+        args.prefix = prefix
         args.write(self._oprot)
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
@@ -431,7 +408,6 @@ class Processor(Iface, TProcessor):
         self._processMap["remove"] = Processor.process_remove
         self._processMap["get"] = Processor.process_get
         self._processMap["getCurrent"] = Processor.process_getCurrent
-        self._processMap["getNext"] = Processor.process_getNext
         self._processMap["getTime"] = Processor.process_getTime
         self._processMap["getKeys"] = Processor.process_getKeys
 
@@ -455,7 +431,7 @@ class Processor(Iface, TProcessor):
         yield gen.Task(args.read,iprot)
         yield gen.Task(iprot.readMessageEnd)
         result = ping_result()
-        yield gen.Task(self._handler.ping, )
+        result.success = yield gen.Task(self._handler.ping, )
         oprot.writeMessageBegin("ping", TMessageType.REPLY, seqid)
         result.write(oprot)
         oprot.writeMessageEnd()
@@ -547,28 +523,8 @@ class Processor(Iface, TProcessor):
         yield gen.Task(args.read,iprot)
         yield gen.Task(iprot.readMessageEnd)
         result = getCurrent_result()
-
-        def handle_exception(xtype, value, traceback):
-            if xtype == ForsunPlanError:
-                result.err = value
-            return True
-
-        with stack_context.ExceptionStackContext(handle_exception):
-            result.success = yield gen.Task(self._handler.getCurrent, )
-
+        result.success = yield gen.Task(self._handler.getCurrent, )
         oprot.writeMessageBegin("getCurrent", TMessageType.REPLY, seqid)
-        result.write(oprot)
-        oprot.writeMessageEnd()
-        oprot.trans.flush()
-
-    @gen.coroutine
-    def process_getNext(self, seqid, iprot, oprot):
-        args = getNext_args()
-        yield gen.Task(args.read,iprot)
-        yield gen.Task(iprot.readMessageEnd)
-        result = getNext_result()
-        result.success = yield gen.Task(self._handler.getNext, )
-        oprot.writeMessageBegin("getNext", TMessageType.REPLY, seqid)
         result.write(oprot)
         oprot.writeMessageEnd()
         oprot.trans.flush()
@@ -591,7 +547,7 @@ class Processor(Iface, TProcessor):
         yield gen.Task(args.read,iprot)
         yield gen.Task(iprot.readMessageEnd)
         result = getKeys_result()
-        result.success = yield gen.Task(self._handler.getKeys, )
+        result.success = yield gen.Task(self._handler.getKeys, args.prefix)
         oprot.writeMessageBegin("getKeys", TMessageType.REPLY, seqid)
         result.write(oprot)
         oprot.writeMessageEnd()
@@ -644,9 +600,17 @@ class ping_args:
         return not (self == other)
 
 class ping_result:
+    """
+    Attributes:
+     - success
+    """
 
     thrift_spec = (
+        (0, TType.I16, 'success', None, None, ), # 0
     )
+
+    def __init__(self, success=None,):
+        self.success = success
 
     @gen.coroutine
     def read(self, iprot):
@@ -658,6 +622,11 @@ class ping_result:
             (fname, ftype, fid) = yield gen.Task(iprot.readFieldBegin)
             if ftype == TType.STOP:
                 break
+            if fid == 0:
+                if ftype == TType.I16:
+                    self.success = yield gen.Task(iprot.readI16)
+                else:
+                    yield gen.Task(iprot.skip,ftype)
             else:
                 yield gen.Task(iprot.skip,ftype)
             yield gen.Task(iprot.readFieldEnd)
@@ -668,6 +637,10 @@ class ping_result:
             oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
             return
         oprot.writeStructBegin('ping_result')
+        if self.success is not None:
+            oprot.writeFieldBegin('success', TType.I16, 0)
+            oprot.writeI16(self.success)
+            oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()
 
@@ -710,7 +683,8 @@ class create_args:
         (6, TType.I16, 'month', None, -1, ), # 6
         (7, TType.I16, 'week', None, -1, ), # 7
         (8, TType.STRING, 'action', None, "shell", ), # 8
-        (9, TType.STRING, 'params', None, "{}", ), # 9
+        (9, TType.LIST, 'params', (TType.STRING,None), [
+        ], ), # 9
     )
 
     def __init__(self, key=None, second=None, minute=thrift_spec[3][4], hour=thrift_spec[4][4], day=thrift_spec[5][4], month=thrift_spec[6][4], week=thrift_spec[7][4], action=thrift_spec[8][4], params=thrift_spec[9][4],):
@@ -722,6 +696,9 @@ class create_args:
         self.month = month
         self.week = week
         self.action = action
+        if params is self.thrift_spec[9][4]:
+          params = [
+        ]
         self.params = params
 
     @gen.coroutine
@@ -775,8 +752,13 @@ class create_args:
                 else:
                     yield gen.Task(iprot.skip,ftype)
             elif fid == 9:
-                if ftype == TType.STRING:
-                    self.params = yield gen.Task(iprot.readString)
+                if ftype == TType.LIST:
+                    self.params = []
+                    (_etype3, _size0) = iprot.readListBegin()
+                    for _i4 in xrange(_size0):
+                        _elem5 = yield gen.Task(iprot.readString)
+                        self.params.append(_elem5)
+                    iprot.readListEnd()
                 else:
                     yield gen.Task(iprot.skip,ftype)
             else:
@@ -822,8 +804,11 @@ class create_args:
             oprot.writeString(self.action)
             oprot.writeFieldEnd()
         if self.params is not None:
-            oprot.writeFieldBegin('params', TType.STRING, 9)
-            oprot.writeString(self.params)
+            oprot.writeFieldBegin('params', TType.LIST, 9)
+            oprot.writeListBegin(TType.STRING, len(self.params))
+            for iter6 in self.params:
+                oprot.writeString(iter6)
+            oprot.writeListEnd()
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()
@@ -943,7 +928,8 @@ class createTimeout_args:
         (7, TType.I16, 'week', None, -1, ), # 7
         (8, TType.I16, 'count', None, 0, ), # 8
         (9, TType.STRING, 'action', None, "shell", ), # 9
-        (10, TType.STRING, 'params', None, "{}", ), # 10
+        (10, TType.LIST, 'params', (TType.STRING,None), [
+        ], ), # 10
     )
 
     def __init__(self, key=None, second=None, minute=thrift_spec[3][4], hour=thrift_spec[4][4], day=thrift_spec[5][4], month=thrift_spec[6][4], week=thrift_spec[7][4], count=thrift_spec[8][4], action=thrift_spec[9][4], params=thrift_spec[10][4],):
@@ -956,6 +942,9 @@ class createTimeout_args:
         self.week = week
         self.count = count
         self.action = action
+        if params is self.thrift_spec[10][4]:
+          params = [
+        ]
         self.params = params
 
     @gen.coroutine
@@ -1014,8 +1003,13 @@ class createTimeout_args:
                 else:
                     yield gen.Task(iprot.skip,ftype)
             elif fid == 10:
-                if ftype == TType.STRING:
-                    self.params = yield gen.Task(iprot.readString)
+                if ftype == TType.LIST:
+                    self.params = []
+                    (_etype10, _size7) = iprot.readListBegin()
+                    for _i11 in xrange(_size7):
+                        _elem12 = yield gen.Task(iprot.readString)
+                        self.params.append(_elem12)
+                    iprot.readListEnd()
                 else:
                     yield gen.Task(iprot.skip,ftype)
             else:
@@ -1065,8 +1059,11 @@ class createTimeout_args:
             oprot.writeString(self.action)
             oprot.writeFieldEnd()
         if self.params is not None:
-            oprot.writeFieldBegin('params', TType.STRING, 10)
-            oprot.writeString(self.params)
+            oprot.writeFieldBegin('params', TType.LIST, 10)
+            oprot.writeListBegin(TType.STRING, len(self.params))
+            for iter13 in self.params:
+                oprot.writeString(iter13)
+            oprot.writeListEnd()
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()
@@ -1477,131 +1474,6 @@ class getCurrent_result:
     """
     Attributes:
      - success
-     - err
-    """
-
-    thrift_spec = (
-        (0, TType.LIST, 'success', (TType.STRUCT,(ForsunPlan, ForsunPlan.thrift_spec)), None, ), # 0
-        (1, TType.STRUCT, 'err', (ForsunPlanError, ForsunPlanError.thrift_spec), None, ), # 1
-    )
-
-    def __init__(self, success=None, err=None,):
-        self.success = success
-        self.err = err
-
-    @gen.coroutine
-    def read(self, iprot):
-        if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
-            fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
-            return
-        yield gen.Task(iprot.readStructBegin)
-        while True:
-            (fname, ftype, fid) = yield gen.Task(iprot.readFieldBegin)
-            if ftype == TType.STOP:
-                break
-            if fid == 0:
-                if ftype == TType.LIST:
-                    self.success = []
-                    (_etype3, _size0) = iprot.readListBegin()
-                    for _i4 in xrange(_size0):
-                        _elem5 = ForsunPlan()
-                        _elem5.read(iprot)
-                        self.success.append(_elem5)
-                    iprot.readListEnd()
-                else:
-                    yield gen.Task(iprot.skip,ftype)
-            elif fid == 1:
-                if ftype == TType.STRUCT:
-                    self.err = ForsunPlanError()
-                    self.err.read(iprot)
-                else:
-                    yield gen.Task(iprot.skip,ftype)
-            else:
-                yield gen.Task(iprot.skip,ftype)
-            yield gen.Task(iprot.readFieldEnd)
-        yield gen.Task(iprot.readStructEnd)
-
-    def write(self, oprot):
-        if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
-            oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
-            return
-        oprot.writeStructBegin('getCurrent_result')
-        if self.success is not None:
-            oprot.writeFieldBegin('success', TType.LIST, 0)
-            oprot.writeListBegin(TType.STRUCT, len(self.success))
-            for iter6 in self.success:
-                iter6.write(oprot)
-            oprot.writeListEnd()
-            oprot.writeFieldEnd()
-        if self.err is not None:
-            oprot.writeFieldBegin('err', TType.STRUCT, 1)
-            self.err.write(oprot)
-            oprot.writeFieldEnd()
-        oprot.writeFieldStop()
-        oprot.writeStructEnd()
-
-    def validate(self):
-        return
-
-
-    def __repr__(self):
-      L = ['%s=%r' % (key, value)
-        for key, value in self.__dict__.iteritems()]
-      return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
-
-    def __eq__(self, other):
-        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
-
-    def __ne__(self, other):
-        return not (self == other)
-
-class getNext_args:
-
-    thrift_spec = (
-    )
-
-    @gen.coroutine
-    def read(self, iprot):
-        if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
-            fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
-            return
-        yield gen.Task(iprot.readStructBegin)
-        while True:
-            (fname, ftype, fid) = yield gen.Task(iprot.readFieldBegin)
-            if ftype == TType.STOP:
-                break
-            else:
-                yield gen.Task(iprot.skip,ftype)
-            yield gen.Task(iprot.readFieldEnd)
-        yield gen.Task(iprot.readStructEnd)
-
-    def write(self, oprot):
-        if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
-            oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
-            return
-        oprot.writeStructBegin('getNext_args')
-        oprot.writeFieldStop()
-        oprot.writeStructEnd()
-
-    def validate(self):
-        return
-
-
-    def __repr__(self):
-      L = ['%s=%r' % (key, value)
-        for key, value in self.__dict__.iteritems()]
-      return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
-
-    def __eq__(self, other):
-        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
-
-    def __ne__(self, other):
-        return not (self == other)
-
-class getNext_result:
-    """
-    Attributes:
-     - success
     """
 
     thrift_spec = (
@@ -1624,11 +1496,11 @@ class getNext_result:
             if fid == 0:
                 if ftype == TType.LIST:
                     self.success = []
-                    (_etype10, _size7) = iprot.readListBegin()
-                    for _i11 in xrange(_size7):
-                        _elem12 = ForsunPlan()
-                        _elem12.read(iprot)
-                        self.success.append(_elem12)
+                    (_etype17, _size14) = iprot.readListBegin()
+                    for _i18 in xrange(_size14):
+                        _elem19 = ForsunPlan()
+                        _elem19.read(iprot)
+                        self.success.append(_elem19)
                     iprot.readListEnd()
                 else:
                     yield gen.Task(iprot.skip,ftype)
@@ -1641,12 +1513,12 @@ class getNext_result:
         if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
             oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
             return
-        oprot.writeStructBegin('getNext_result')
+        oprot.writeStructBegin('getCurrent_result')
         if self.success is not None:
             oprot.writeFieldBegin('success', TType.LIST, 0)
             oprot.writeListBegin(TType.STRUCT, len(self.success))
-            for iter13 in self.success:
-                iter13.write(oprot)
+            for iter20 in self.success:
+                iter20.write(oprot)
             oprot.writeListEnd()
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
@@ -1754,11 +1626,11 @@ class getTime_result:
             if fid == 0:
                 if ftype == TType.LIST:
                     self.success = []
-                    (_etype17, _size14) = iprot.readListBegin()
-                    for _i18 in xrange(_size14):
-                        _elem19 = ForsunPlan()
-                        _elem19.read(iprot)
-                        self.success.append(_elem19)
+                    (_etype24, _size21) = iprot.readListBegin()
+                    for _i25 in xrange(_size21):
+                        _elem26 = ForsunPlan()
+                        _elem26.read(iprot)
+                        self.success.append(_elem26)
                     iprot.readListEnd()
                 else:
                     yield gen.Task(iprot.skip,ftype)
@@ -1775,8 +1647,8 @@ class getTime_result:
         if self.success is not None:
             oprot.writeFieldBegin('success', TType.LIST, 0)
             oprot.writeListBegin(TType.STRUCT, len(self.success))
-            for iter20 in self.success:
-                iter20.write(oprot)
+            for iter27 in self.success:
+                iter27.write(oprot)
             oprot.writeListEnd()
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
@@ -1798,9 +1670,18 @@ class getTime_result:
         return not (self == other)
 
 class getKeys_args:
+    """
+    Attributes:
+     - prefix
+    """
 
     thrift_spec = (
+        None, # 0
+        (1, TType.STRING, 'prefix', None, None, ), # 1
     )
+
+    def __init__(self, prefix=None,):
+        self.prefix = prefix
 
     @gen.coroutine
     def read(self, iprot):
@@ -1812,6 +1693,11 @@ class getKeys_args:
             (fname, ftype, fid) = yield gen.Task(iprot.readFieldBegin)
             if ftype == TType.STOP:
                 break
+            if fid == 1:
+                if ftype == TType.STRING:
+                    self.prefix = yield gen.Task(iprot.readString)
+                else:
+                    yield gen.Task(iprot.skip,ftype)
             else:
                 yield gen.Task(iprot.skip,ftype)
             yield gen.Task(iprot.readFieldEnd)
@@ -1822,6 +1708,10 @@ class getKeys_args:
             oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
             return
         oprot.writeStructBegin('getKeys_args')
+        if self.prefix is not None:
+            oprot.writeFieldBegin('prefix', TType.STRING, 1)
+            oprot.writeString(self.prefix)
+            oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()
 
@@ -1866,10 +1756,10 @@ class getKeys_result:
             if fid == 0:
                 if ftype == TType.LIST:
                     self.success = []
-                    (_etype24, _size21) = iprot.readListBegin()
-                    for _i25 in xrange(_size21):
-                        _elem26 = yield gen.Task(iprot.readString)
-                        self.success.append(_elem26)
+                    (_etype31, _size28) = iprot.readListBegin()
+                    for _i32 in xrange(_size28):
+                        _elem33 = yield gen.Task(iprot.readString)
+                        self.success.append(_elem33)
                     iprot.readListEnd()
                 else:
                     yield gen.Task(iprot.skip,ftype)
@@ -1886,8 +1776,8 @@ class getKeys_result:
         if self.success is not None:
             oprot.writeFieldBegin('success', TType.LIST, 0)
             oprot.writeListBegin(TType.STRING, len(self.success))
-            for iter27 in self.success:
-                oprot.writeString(iter27)
+            for iter34 in self.success:
+                oprot.writeString(iter34)
             oprot.writeListEnd()
             oprot.writeFieldEnd()
         oprot.writeFieldStop()

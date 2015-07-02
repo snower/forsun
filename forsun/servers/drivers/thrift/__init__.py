@@ -24,7 +24,7 @@ class ThriftServer(Server):
         handler = Handler(self.forsun)
         processor = Processor(handler)
         tfactory = TIOStreamTransportFactory()
-        protocol =TBinaryProtocolFactory()
+        protocol = TBinaryProtocolFactory()
 
         bind_address = config.get("SERVER_THRIFT_BIND_ADDRESS", "127.0.0.1")
         port = config.get("SERVER_THRIFT_PORT", 5643)

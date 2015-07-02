@@ -32,7 +32,7 @@ class RedisClient(object):
 
 class RedisStore(Store):
     def __init__(self, *args, **kwargs):
-        super(RedisClient, self).__init__(*args, **kwargs)
+        super(RedisStore, self).__init__(*args, **kwargs)
 
         self.db = RedisClient(
             host = config.get("STORE_REDIS_HOST", "127.0.0.1"),

@@ -11,9 +11,11 @@ import store
 import action
 import servers
 import timer
+import log
 
 class Forsun(object):
     def __init__(self):
+        log.init_config()
         self.store = store.get_store()
         self.server = servers.get_server(self)
 
@@ -56,6 +58,7 @@ class Forsun(object):
         if plan.next_time:
             yield self.store.add_time_plan(plan)
             res = yield self.store.add_plan(plan)
+            logging.info("create plan %s", plan)
             raise gen.Return(res)
         raise gen.Return(False)
 
@@ -96,6 +99,7 @@ class Forsun(object):
         try:
             self.server.start()
             timer.start(self.time_out)
+            timer.loop()
         except KeyboardInterrupt:
             self.exit()
 

@@ -52,11 +52,24 @@ class HttpAction(Action):
         user_agent = options.get("user_agent", None)
         connect_timeout = options.get("connect_timeout", None)
         request_timeout = options.get("request_timeout", None)
+        output = options.get("output", None)
+
+        output_fp, streaming_callback = None, lambda : None
+        if output:
+            output_fp = open(output, "wb")
+        if output_fp:
+            def streaming_callback(chunk):
+                output_fp.write(chunk)
 
         headers["X-FORSUN-TIMESTAMP"] = str(self.ts)
         request = HTTPRequest(url, method, body=body, headers=headers,
                               auth_username=auth_username, auth_password=auth_password, auth_mode=auth_mode,
                               user_agent = user_agent, connect_timeout=connect_timeout, request_timeout=request_timeout,
+                              streaming_callback = streaming_callback,
         )
-        response = yield self.client.fetch(request)
+        try:
+            response = yield self.client.fetch(request)
+        finally:
+            if output_fp:
+                output_fp.close()
         logging.info("http action execute %s %s %s '%s' %.2fms", method, url, response.code, response.reason, (time.time() - self.start_time) * 1000)

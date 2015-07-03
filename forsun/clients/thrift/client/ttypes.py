@@ -3,7 +3,7 @@
 #
 # DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
 #
-#  options string: py:tornado
+#  options string: py
 #
 
 from thrift.Thrift import TType, TMessageType, TException, TApplicationException
@@ -16,7 +16,6 @@ except:
   fastbinary = None
 
 
-from tornado import gen
 
 class ForsunPlanError(TException):
     """
@@ -35,30 +34,29 @@ class ForsunPlanError(TException):
         self.code = code
         self.message = message
 
-    @gen.coroutine
     def read(self, iprot):
         if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
             fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
             return
-        yield gen.Task(iprot.readStructBegin)
+        iprot.readStructBegin()
         while True:
-            (fname, ftype, fid) = yield gen.Task(iprot.readFieldBegin)
+            (fname, ftype, fid) = iprot.readFieldBegin()
             if ftype == TType.STOP:
                 break
             if fid == 1:
                 if ftype == TType.I16:
-                    self.code = yield gen.Task(iprot.readI16)
+                    self.code = iprot.readI16()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 2:
                 if ftype == TType.STRING:
-                    self.message = yield gen.Task(iprot.readString)
+                    self.message = iprot.readString()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             else:
-                yield gen.Task(iprot.skip,ftype)
-            yield gen.Task(iprot.readFieldEnd)
-        yield gen.Task(iprot.readStructEnd)
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
 
     def write(self, oprot):
         if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
@@ -130,7 +128,8 @@ class ForsunPlan:
         (12, TType.I16, 'current_count', None, 0, ), # 12
         (13, TType.I32, 'last_timeout', None, 0, ), # 13
         (14, TType.STRING, 'action', None, "shell", ), # 14
-        (15, TType.STRING, 'params', None, "{}", ), # 15
+        (15, TType.LIST, 'params', (TType.STRING,None), [
+        ], ), # 15
     )
 
     def __init__(self, is_time_out=None, key=None, second=None, minute=thrift_spec[4][4], hour=thrift_spec[5][4], day=thrift_spec[6][4], month=thrift_spec[7][4], week=thrift_spec[8][4], next_time=None, status=thrift_spec[10][4], count=thrift_spec[11][4], current_count=thrift_spec[12][4], last_timeout=thrift_spec[13][4], action=thrift_spec[14][4], params=thrift_spec[15][4],):
@@ -148,97 +147,104 @@ class ForsunPlan:
         self.current_count = current_count
         self.last_timeout = last_timeout
         self.action = action
+        if params is self.thrift_spec[15][4]:
+          params = [
+        ]
         self.params = params
 
-    @gen.coroutine
     def read(self, iprot):
         if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
             fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
             return
-        yield gen.Task(iprot.readStructBegin)
+        iprot.readStructBegin()
         while True:
-            (fname, ftype, fid) = yield gen.Task(iprot.readFieldBegin)
+            (fname, ftype, fid) = iprot.readFieldBegin()
             if ftype == TType.STOP:
                 break
             if fid == 1:
                 if ftype == TType.BOOL:
-                    self.is_time_out = yield gen.Task(iprot.readBool)
+                    self.is_time_out = iprot.readBool()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 2:
                 if ftype == TType.STRING:
-                    self.key = yield gen.Task(iprot.readString)
+                    self.key = iprot.readString()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 3:
                 if ftype == TType.I16:
-                    self.second = yield gen.Task(iprot.readI16)
+                    self.second = iprot.readI16()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 4:
                 if ftype == TType.I16:
-                    self.minute = yield gen.Task(iprot.readI16)
+                    self.minute = iprot.readI16()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 5:
                 if ftype == TType.I16:
-                    self.hour = yield gen.Task(iprot.readI16)
+                    self.hour = iprot.readI16()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 6:
                 if ftype == TType.I16:
-                    self.day = yield gen.Task(iprot.readI16)
+                    self.day = iprot.readI16()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 7:
                 if ftype == TType.I16:
-                    self.month = yield gen.Task(iprot.readI16)
+                    self.month = iprot.readI16()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 8:
                 if ftype == TType.I16:
-                    self.week = yield gen.Task(iprot.readI16)
+                    self.week = iprot.readI16()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 9:
                 if ftype == TType.I32:
-                    self.next_time = yield gen.Task(iprot.readI32)
+                    self.next_time = iprot.readI32()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 10:
                 if ftype == TType.I16:
-                    self.status = yield gen.Task(iprot.readI16)
+                    self.status = iprot.readI16()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 11:
                 if ftype == TType.I16:
-                    self.count = yield gen.Task(iprot.readI16)
+                    self.count = iprot.readI16()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 12:
                 if ftype == TType.I16:
-                    self.current_count = yield gen.Task(iprot.readI16)
+                    self.current_count = iprot.readI16()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 13:
                 if ftype == TType.I32:
-                    self.last_timeout = yield gen.Task(iprot.readI32)
+                    self.last_timeout = iprot.readI32()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 14:
                 if ftype == TType.STRING:
-                    self.action = yield gen.Task(iprot.readString)
+                    self.action = iprot.readString()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 15:
-                if ftype == TType.STRING:
-                    self.params = yield gen.Task(iprot.readString)
+                if ftype == TType.LIST:
+                    self.params = []
+                    (_etype3, _size0) = iprot.readListBegin()
+                    for _i4 in xrange(_size0):
+                        _elem5 = iprot.readString()
+                        self.params.append(_elem5)
+                    iprot.readListEnd()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             else:
-                yield gen.Task(iprot.skip,ftype)
-            yield gen.Task(iprot.readFieldEnd)
-        yield gen.Task(iprot.readStructEnd)
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
 
     def write(self, oprot):
         if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
@@ -302,8 +308,11 @@ class ForsunPlan:
             oprot.writeString(self.action)
             oprot.writeFieldEnd()
         if self.params is not None:
-            oprot.writeFieldBegin('params', TType.STRING, 15)
-            oprot.writeString(self.params)
+            oprot.writeFieldBegin('params', TType.LIST, 15)
+            oprot.writeListBegin(TType.STRING, len(self.params))
+            for iter6 in self.params:
+                oprot.writeString(iter6)
+            oprot.writeListEnd()
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()

@@ -28,14 +28,14 @@ class ShellAction(Action):
             raise ExecuteActionError("cmd is empty")
 
         cmd = self.params[0]
-        args = self.params[1] if len(self.params) >= 2 else ""
-        env = self.params[2] if len(self.params) >= 3 else '{}'
+        args = self.params[1] if len(self.params) >= 2 and self.params[1] else ""
+        env = self.params[2] if len(self.params) >= 3 and self.params[2] else '{}'
         if env:
             try:
                 env = json.loads(env)
             except:
                 env = {}
-        options = self.params[3] if len(self.params) >= 4 else '{}'
+        options = self.params[3] if len(self.params) >= 4 and self.params[3] else '{}'
         if options:
             try:
                 options = json.loads(options)
@@ -66,7 +66,7 @@ class ShellAction(Action):
                             log_fp.write(line)
                         break
                     time.sleep(0.5)
-                logging.info("shell action %s exit %.2fms", cmd, (time.time() - self.start_time) * 1000)
+                logging.info("shell action %s %.2fms", cmd, (time.time() - self.start_time) * 1000)
             finally:
                 if log_file_name and log_fp:
                     log_fp.close()

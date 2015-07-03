@@ -28,7 +28,15 @@ def init_config():
             "":{
                 'handlers': ['main'],
                 'level': log_level
-            }
+            },
+            "tornado.application":{
+                'handlers': ['main'],
+                'level': log_level
+            },
+            "tornado.general":{
+                'handlers': ['main'],
+                'level': log_level
+            },
         }
     }
 

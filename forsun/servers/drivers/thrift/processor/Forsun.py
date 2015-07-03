@@ -432,6 +432,7 @@ class Processor(Iface, TProcessor):
         yield gen.Task(iprot.readMessageEnd)
         result = ping_result()
         result.success = yield gen.Task(self._handler.ping, )
+        
         oprot.writeMessageBegin("ping", TMessageType.REPLY, seqid)
         result.write(oprot)
         oprot.writeMessageEnd()
@@ -444,14 +445,11 @@ class Processor(Iface, TProcessor):
         yield gen.Task(iprot.readMessageEnd)
         result = create_result()
 
-        def handle_exception(xtype, value, traceback):
-            if xtype == ForsunPlanError:
-                result.err = value
-            return True
-
-        with stack_context.ExceptionStackContext(handle_exception):
+        try:
             result.success = yield gen.Task(self._handler.create, args.key, args.second, args.minute, args.hour, args.day, args.month, args.week, args.action, args.params)
-
+        except ForsunPlanError as e:
+            result.err = e
+        
         oprot.writeMessageBegin("create", TMessageType.REPLY, seqid)
         result.write(oprot)
         oprot.writeMessageEnd()
@@ -464,14 +462,11 @@ class Processor(Iface, TProcessor):
         yield gen.Task(iprot.readMessageEnd)
         result = createTimeout_result()
 
-        def handle_exception(xtype, value, traceback):
-            if xtype == ForsunPlanError:
-                result.err = value
-            return True
-
-        with stack_context.ExceptionStackContext(handle_exception):
+        try:
             result.success = yield gen.Task(self._handler.createTimeout, args.key, args.second, args.minute, args.hour, args.day, args.month, args.week, args.count, args.action, args.params)
-
+        except ForsunPlanError as e:
+            result.err = e
+        
         oprot.writeMessageBegin("createTimeout", TMessageType.REPLY, seqid)
         result.write(oprot)
         oprot.writeMessageEnd()
@@ -484,14 +479,11 @@ class Processor(Iface, TProcessor):
         yield gen.Task(iprot.readMessageEnd)
         result = remove_result()
 
-        def handle_exception(xtype, value, traceback):
-            if xtype == ForsunPlanError:
-                result.err = value
-            return True
-
-        with stack_context.ExceptionStackContext(handle_exception):
+        try:
             result.success = yield gen.Task(self._handler.remove, args.key)
-
+        except ForsunPlanError as e:
+            result.err = e
+        
         oprot.writeMessageBegin("remove", TMessageType.REPLY, seqid)
         result.write(oprot)
         oprot.writeMessageEnd()
@@ -504,14 +496,11 @@ class Processor(Iface, TProcessor):
         yield gen.Task(iprot.readMessageEnd)
         result = get_result()
 
-        def handle_exception(xtype, value, traceback):
-            if xtype == ForsunPlanError:
-                result.err = value
-            return True
-
-        with stack_context.ExceptionStackContext(handle_exception):
+        try:
             result.success = yield gen.Task(self._handler.get, args.key)
-
+        except ForsunPlanError as e:
+            result.err = e
+        
         oprot.writeMessageBegin("get", TMessageType.REPLY, seqid)
         result.write(oprot)
         oprot.writeMessageEnd()
@@ -524,6 +513,7 @@ class Processor(Iface, TProcessor):
         yield gen.Task(iprot.readMessageEnd)
         result = getCurrent_result()
         result.success = yield gen.Task(self._handler.getCurrent, )
+        
         oprot.writeMessageBegin("getCurrent", TMessageType.REPLY, seqid)
         result.write(oprot)
         oprot.writeMessageEnd()
@@ -536,6 +526,7 @@ class Processor(Iface, TProcessor):
         yield gen.Task(iprot.readMessageEnd)
         result = getTime_result()
         result.success = yield gen.Task(self._handler.getTime, args.timestamp)
+        
         oprot.writeMessageBegin("getTime", TMessageType.REPLY, seqid)
         result.write(oprot)
         oprot.writeMessageEnd()
@@ -548,6 +539,7 @@ class Processor(Iface, TProcessor):
         yield gen.Task(iprot.readMessageEnd)
         result = getKeys_result()
         result.success = yield gen.Task(self._handler.getKeys, args.prefix)
+        
         oprot.writeMessageBegin("getKeys", TMessageType.REPLY, seqid)
         result.write(oprot)
         oprot.writeMessageEnd()
@@ -754,11 +746,11 @@ class create_args:
             elif fid == 9:
                 if ftype == TType.LIST:
                     self.params = []
-                    (_etype3, _size0) = iprot.readListBegin()
-                    for _i4 in xrange(_size0):
-                        _elem5 = yield gen.Task(iprot.readString)
-                        self.params.append(_elem5)
-                    iprot.readListEnd()
+                    (_etype10, _size7) = yield gen.Task(iprot.readListBegin)
+                    for _i11 in xrange(_size7):
+                        _elem12 = yield gen.Task(iprot.readString)
+                        self.params.append(_elem12)
+                    yield gen.Task(iprot.readListEnd)
                 else:
                     yield gen.Task(iprot.skip,ftype)
             else:
@@ -806,8 +798,8 @@ class create_args:
         if self.params is not None:
             oprot.writeFieldBegin('params', TType.LIST, 9)
             oprot.writeListBegin(TType.STRING, len(self.params))
-            for iter6 in self.params:
-                oprot.writeString(iter6)
+            for iter13 in self.params:
+                oprot.writeString(iter13)
             oprot.writeListEnd()
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
@@ -1005,11 +997,11 @@ class createTimeout_args:
             elif fid == 10:
                 if ftype == TType.LIST:
                     self.params = []
-                    (_etype10, _size7) = iprot.readListBegin()
-                    for _i11 in xrange(_size7):
-                        _elem12 = yield gen.Task(iprot.readString)
-                        self.params.append(_elem12)
-                    iprot.readListEnd()
+                    (_etype17, _size14) = yield gen.Task(iprot.readListBegin)
+                    for _i18 in xrange(_size14):
+                        _elem19 = yield gen.Task(iprot.readString)
+                        self.params.append(_elem19)
+                    yield gen.Task(iprot.readListEnd)
                 else:
                     yield gen.Task(iprot.skip,ftype)
             else:
@@ -1061,8 +1053,8 @@ class createTimeout_args:
         if self.params is not None:
             oprot.writeFieldBegin('params', TType.LIST, 10)
             oprot.writeListBegin(TType.STRING, len(self.params))
-            for iter13 in self.params:
-                oprot.writeString(iter13)
+            for iter20 in self.params:
+                oprot.writeString(iter20)
             oprot.writeListEnd()
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
@@ -1496,12 +1488,12 @@ class getCurrent_result:
             if fid == 0:
                 if ftype == TType.LIST:
                     self.success = []
-                    (_etype17, _size14) = iprot.readListBegin()
-                    for _i18 in xrange(_size14):
-                        _elem19 = ForsunPlan()
-                        _elem19.read(iprot)
-                        self.success.append(_elem19)
-                    iprot.readListEnd()
+                    (_etype24, _size21) = yield gen.Task(iprot.readListBegin)
+                    for _i25 in xrange(_size21):
+                        _elem26 = ForsunPlan()
+                        _elem26.read(iprot)
+                        self.success.append(_elem26)
+                    yield gen.Task(iprot.readListEnd)
                 else:
                     yield gen.Task(iprot.skip,ftype)
             else:
@@ -1517,8 +1509,8 @@ class getCurrent_result:
         if self.success is not None:
             oprot.writeFieldBegin('success', TType.LIST, 0)
             oprot.writeListBegin(TType.STRUCT, len(self.success))
-            for iter20 in self.success:
-                iter20.write(oprot)
+            for iter27 in self.success:
+                iter27.write(oprot)
             oprot.writeListEnd()
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
@@ -1626,12 +1618,12 @@ class getTime_result:
             if fid == 0:
                 if ftype == TType.LIST:
                     self.success = []
-                    (_etype24, _size21) = iprot.readListBegin()
-                    for _i25 in xrange(_size21):
-                        _elem26 = ForsunPlan()
-                        _elem26.read(iprot)
-                        self.success.append(_elem26)
-                    iprot.readListEnd()
+                    (_etype31, _size28) = yield gen.Task(iprot.readListBegin)
+                    for _i32 in xrange(_size28):
+                        _elem33 = ForsunPlan()
+                        _elem33.read(iprot)
+                        self.success.append(_elem33)
+                    yield gen.Task(iprot.readListEnd)
                 else:
                     yield gen.Task(iprot.skip,ftype)
             else:
@@ -1647,8 +1639,8 @@ class getTime_result:
         if self.success is not None:
             oprot.writeFieldBegin('success', TType.LIST, 0)
             oprot.writeListBegin(TType.STRUCT, len(self.success))
-            for iter27 in self.success:
-                iter27.write(oprot)
+            for iter34 in self.success:
+                iter34.write(oprot)
             oprot.writeListEnd()
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
@@ -1756,11 +1748,11 @@ class getKeys_result:
             if fid == 0:
                 if ftype == TType.LIST:
                     self.success = []
-                    (_etype31, _size28) = iprot.readListBegin()
-                    for _i32 in xrange(_size28):
-                        _elem33 = yield gen.Task(iprot.readString)
-                        self.success.append(_elem33)
-                    iprot.readListEnd()
+                    (_etype38, _size35) = yield gen.Task(iprot.readListBegin)
+                    for _i39 in xrange(_size35):
+                        _elem40 = yield gen.Task(iprot.readString)
+                        self.success.append(_elem40)
+                    yield gen.Task(iprot.readListEnd)
                 else:
                     yield gen.Task(iprot.skip,ftype)
             else:
@@ -1776,8 +1768,8 @@ class getKeys_result:
         if self.success is not None:
             oprot.writeFieldBegin('success', TType.LIST, 0)
             oprot.writeListBegin(TType.STRING, len(self.success))
-            for iter34 in self.success:
-                oprot.writeString(iter34)
+            for iter41 in self.success:
+                oprot.writeString(iter41)
             oprot.writeListEnd()
             oprot.writeFieldEnd()
         oprot.writeFieldStop()

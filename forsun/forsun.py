@@ -68,6 +68,7 @@ class Forsun(object):
         if oplan:
             yield self.store.remove_time_plan(oplan)
             yield self.store.remove_plan(oplan.key)
+            logging.info("remove plan %s", oplan)
             raise gen.Return(oplan)
         raise gen.Return(None)
 

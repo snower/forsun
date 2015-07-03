@@ -130,7 +130,8 @@ class ForsunPlan:
         (12, TType.I16, 'current_count', None, 0, ), # 12
         (13, TType.I32, 'last_timeout', None, 0, ), # 13
         (14, TType.STRING, 'action', None, "shell", ), # 14
-        (15, TType.STRING, 'params', None, "{}", ), # 15
+        (15, TType.LIST, 'params', (TType.STRING,None), [
+        ], ), # 15
     )
 
     def __init__(self, is_time_out=None, key=None, second=None, minute=thrift_spec[4][4], hour=thrift_spec[5][4], day=thrift_spec[6][4], month=thrift_spec[7][4], week=thrift_spec[8][4], next_time=None, status=thrift_spec[10][4], count=thrift_spec[11][4], current_count=thrift_spec[12][4], last_timeout=thrift_spec[13][4], action=thrift_spec[14][4], params=thrift_spec[15][4],):
@@ -148,6 +149,9 @@ class ForsunPlan:
         self.current_count = current_count
         self.last_timeout = last_timeout
         self.action = action
+        if params is self.thrift_spec[15][4]:
+          params = [
+        ]
         self.params = params
 
     @gen.coroutine
@@ -231,8 +235,13 @@ class ForsunPlan:
                 else:
                     yield gen.Task(iprot.skip,ftype)
             elif fid == 15:
-                if ftype == TType.STRING:
-                    self.params = yield gen.Task(iprot.readString)
+                if ftype == TType.LIST:
+                    self.params = []
+                    (_etype3, _size0) = yield gen.Task(iprot.readListBegin)
+                    for _i4 in xrange(_size0):
+                        _elem5 = yield gen.Task(iprot.readString)
+                        self.params.append(_elem5)
+                    yield gen.Task(iprot.readListEnd)
                 else:
                     yield gen.Task(iprot.skip,ftype)
             else:
@@ -302,8 +311,11 @@ class ForsunPlan:
             oprot.writeString(self.action)
             oprot.writeFieldEnd()
         if self.params is not None:
-            oprot.writeFieldBegin('params', TType.STRING, 15)
-            oprot.writeString(self.params)
+            oprot.writeFieldBegin('params', TType.LIST, 15)
+            oprot.writeListBegin(TType.STRING, len(self.params))
+            for iter6 in self.params:
+                oprot.writeString(iter6)
+            oprot.writeListEnd()
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()

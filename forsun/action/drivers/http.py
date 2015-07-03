@@ -53,15 +53,17 @@ class HttpAction(Action):
         connect_timeout = options.get("connect_timeout", None)
         request_timeout = options.get("request_timeout", None)
         output = options.get("output", None)
+        xheader = options.get("xheader", True)
 
-        output_fp, streaming_callback = None, lambda : None
+        output_fp, streaming_callback = None, lambda chunk: None
         if output:
             output_fp = open(output, "wb")
         if output_fp:
             def streaming_callback(chunk):
                 output_fp.write(chunk)
 
-        headers["X-FORSUN-TIMESTAMP"] = str(self.ts)
+        if xheader:
+            headers["X-FORSUN-TIMESTAMP"] = str(self.ts)
         request = HTTPRequest(url, method, body=body, headers=headers,
                               auth_username=auth_username, auth_password=auth_password, auth_mode=auth_mode,
                               user_agent = user_agent, connect_timeout=connect_timeout, request_timeout=request_timeout,

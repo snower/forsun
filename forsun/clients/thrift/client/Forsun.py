@@ -3,7 +3,7 @@
 #
 # DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
 #
-#  options string: py:tornado
+#  options string: py
 #
 
 from thrift.Thrift import TType, TMessageType, TException, TApplicationException
@@ -16,10 +16,8 @@ try:
 except:
   fastbinary = None
 
-from tornado import gen
-from tornado import stack_context
 
-class Iface(object):
+class Iface:
     def ping(self):
         pass
 
@@ -93,12 +91,9 @@ class Client(Iface):
         self._oprot = oprot
       self._seqid = 0
 
-    @gen.coroutine
     def ping(self):
-        self._seqid += 1
         self.send_ping()
-        result = yield self.recv_ping()
-        raise gen.Return(result)
+        return self.recv_ping()
 
     def send_ping(self):
         self._oprot.writeMessageBegin('ping', TMessageType.CALL, self._seqid)
@@ -107,22 +102,20 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    @gen.coroutine
     def recv_ping(self):
-        (fname, mtype, rseqid) = yield gen.Task(self._iprot.readMessageBegin)
+        (fname, mtype, rseqid) = self._iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
           x = TApplicationException()
-          yield gen.Task(x.read, self._iprot)
-          yield gen.Task(self._iprot.readMessageEnd)
+          x.read(self._iprot)
+          self._iprot.readMessageEnd()
           raise x
         result = ping_result()
-        yield gen.Task(result.read, self._iprot)
-        yield gen.Task(self._iprot.readMessageEnd)
+        result.read(self._iprot)
+        self._iprot.readMessageEnd()
         if result.success is not None:
-          raise gen.Return(result.success)
+          return result.success
         raise TApplicationException(TApplicationException.MISSING_RESULT, "ping failed: unknown result");
 
-    @gen.coroutine
     def create(self, key, second, minute, hour, day, month, week, action, params):
         """
         Parameters:
@@ -136,10 +129,8 @@ class Client(Iface):
          - action
          - params
         """
-        self._seqid += 1
         self.send_create(key, second, minute, hour, day, month, week, action, params)
-        result = yield self.recv_create()
-        raise gen.Return(result)
+        return self.recv_create()
 
     def send_create(self, key, second, minute, hour, day, month, week, action, params):
         self._oprot.writeMessageBegin('create', TMessageType.CALL, self._seqid)
@@ -157,24 +148,22 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    @gen.coroutine
     def recv_create(self):
-        (fname, mtype, rseqid) = yield gen.Task(self._iprot.readMessageBegin)
+        (fname, mtype, rseqid) = self._iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
           x = TApplicationException()
-          yield gen.Task(x.read, self._iprot)
-          yield gen.Task(self._iprot.readMessageEnd)
+          x.read(self._iprot)
+          self._iprot.readMessageEnd()
           raise x
         result = create_result()
-        yield gen.Task(result.read, self._iprot)
-        yield gen.Task(self._iprot.readMessageEnd)
+        result.read(self._iprot)
+        self._iprot.readMessageEnd()
         if result.success is not None:
-          raise gen.Return(result.success)
+          return result.success
         if result.err is not None:
-          raise gen.Return(result.err)
+          raise result.err
         raise TApplicationException(TApplicationException.MISSING_RESULT, "create failed: unknown result");
 
-    @gen.coroutine
     def createTimeout(self, key, second, minute, hour, day, month, week, count, action, params):
         """
         Parameters:
@@ -189,10 +178,8 @@ class Client(Iface):
          - action
          - params
         """
-        self._seqid += 1
         self.send_createTimeout(key, second, minute, hour, day, month, week, count, action, params)
-        result = yield self.recv_createTimeout()
-        raise gen.Return(result)
+        return self.recv_createTimeout()
 
     def send_createTimeout(self, key, second, minute, hour, day, month, week, count, action, params):
         self._oprot.writeMessageBegin('createTimeout', TMessageType.CALL, self._seqid)
@@ -211,33 +198,29 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    @gen.coroutine
     def recv_createTimeout(self):
-        (fname, mtype, rseqid) = yield gen.Task(self._iprot.readMessageBegin)
+        (fname, mtype, rseqid) = self._iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
           x = TApplicationException()
-          yield gen.Task(x.read, self._iprot)
-          yield gen.Task(self._iprot.readMessageEnd)
+          x.read(self._iprot)
+          self._iprot.readMessageEnd()
           raise x
         result = createTimeout_result()
-        yield gen.Task(result.read, self._iprot)
-        yield gen.Task(self._iprot.readMessageEnd)
+        result.read(self._iprot)
+        self._iprot.readMessageEnd()
         if result.success is not None:
-          raise gen.Return(result.success)
+          return result.success
         if result.err is not None:
-          raise gen.Return(result.err)
+          raise result.err
         raise TApplicationException(TApplicationException.MISSING_RESULT, "createTimeout failed: unknown result");
 
-    @gen.coroutine
     def remove(self, key):
         """
         Parameters:
          - key
         """
-        self._seqid += 1
         self.send_remove(key)
-        result = yield self.recv_remove()
-        raise gen.Return(result)
+        return self.recv_remove()
 
     def send_remove(self, key):
         self._oprot.writeMessageBegin('remove', TMessageType.CALL, self._seqid)
@@ -247,33 +230,29 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    @gen.coroutine
     def recv_remove(self):
-        (fname, mtype, rseqid) = yield gen.Task(self._iprot.readMessageBegin)
+        (fname, mtype, rseqid) = self._iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
           x = TApplicationException()
-          yield gen.Task(x.read, self._iprot)
-          yield gen.Task(self._iprot.readMessageEnd)
+          x.read(self._iprot)
+          self._iprot.readMessageEnd()
           raise x
         result = remove_result()
-        yield gen.Task(result.read, self._iprot)
-        yield gen.Task(self._iprot.readMessageEnd)
+        result.read(self._iprot)
+        self._iprot.readMessageEnd()
         if result.success is not None:
-          raise gen.Return(result.success)
+          return result.success
         if result.err is not None:
-          raise gen.Return(result.err)
+          raise result.err
         raise TApplicationException(TApplicationException.MISSING_RESULT, "remove failed: unknown result");
 
-    @gen.coroutine
     def get(self, key):
         """
         Parameters:
          - key
         """
-        self._seqid += 1
         self.send_get(key)
-        result = yield self.recv_get()
-        raise gen.Return(result)
+        return self.recv_get()
 
     def send_get(self, key):
         self._oprot.writeMessageBegin('get', TMessageType.CALL, self._seqid)
@@ -283,29 +262,25 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    @gen.coroutine
     def recv_get(self):
-        (fname, mtype, rseqid) = yield gen.Task(self._iprot.readMessageBegin)
+        (fname, mtype, rseqid) = self._iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
           x = TApplicationException()
-          yield gen.Task(x.read, self._iprot)
-          yield gen.Task(self._iprot.readMessageEnd)
+          x.read(self._iprot)
+          self._iprot.readMessageEnd()
           raise x
         result = get_result()
-        yield gen.Task(result.read, self._iprot)
-        yield gen.Task(self._iprot.readMessageEnd)
+        result.read(self._iprot)
+        self._iprot.readMessageEnd()
         if result.success is not None:
-          raise gen.Return(result.success)
+          return result.success
         if result.err is not None:
-          raise gen.Return(result.err)
+          raise result.err
         raise TApplicationException(TApplicationException.MISSING_RESULT, "get failed: unknown result");
 
-    @gen.coroutine
     def getCurrent(self):
-        self._seqid += 1
         self.send_getCurrent()
-        result = yield self.recv_getCurrent()
-        raise gen.Return(result)
+        return self.recv_getCurrent()
 
     def send_getCurrent(self):
         self._oprot.writeMessageBegin('getCurrent', TMessageType.CALL, self._seqid)
@@ -314,31 +289,27 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    @gen.coroutine
     def recv_getCurrent(self):
-        (fname, mtype, rseqid) = yield gen.Task(self._iprot.readMessageBegin)
+        (fname, mtype, rseqid) = self._iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
           x = TApplicationException()
-          yield gen.Task(x.read, self._iprot)
-          yield gen.Task(self._iprot.readMessageEnd)
+          x.read(self._iprot)
+          self._iprot.readMessageEnd()
           raise x
         result = getCurrent_result()
-        yield gen.Task(result.read, self._iprot)
-        yield gen.Task(self._iprot.readMessageEnd)
+        result.read(self._iprot)
+        self._iprot.readMessageEnd()
         if result.success is not None:
-          raise gen.Return(result.success)
+          return result.success
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getCurrent failed: unknown result");
 
-    @gen.coroutine
     def getTime(self, timestamp):
         """
         Parameters:
          - timestamp
         """
-        self._seqid += 1
         self.send_getTime(timestamp)
-        result = yield self.recv_getTime()
-        raise gen.Return(result)
+        return self.recv_getTime()
 
     def send_getTime(self, timestamp):
         self._oprot.writeMessageBegin('getTime', TMessageType.CALL, self._seqid)
@@ -348,31 +319,27 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    @gen.coroutine
     def recv_getTime(self):
-        (fname, mtype, rseqid) = yield gen.Task(self._iprot.readMessageBegin)
+        (fname, mtype, rseqid) = self._iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
           x = TApplicationException()
-          yield gen.Task(x.read, self._iprot)
-          yield gen.Task(self._iprot.readMessageEnd)
+          x.read(self._iprot)
+          self._iprot.readMessageEnd()
           raise x
         result = getTime_result()
-        yield gen.Task(result.read, self._iprot)
-        yield gen.Task(self._iprot.readMessageEnd)
+        result.read(self._iprot)
+        self._iprot.readMessageEnd()
         if result.success is not None:
-          raise gen.Return(result.success)
+          return result.success
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getTime failed: unknown result");
 
-    @gen.coroutine
     def getKeys(self, prefix):
         """
         Parameters:
          - prefix
         """
-        self._seqid += 1
         self.send_getKeys(prefix)
-        result = yield self.recv_getKeys()
-        raise gen.Return(result)
+        return self.recv_getKeys()
 
     def send_getKeys(self, prefix):
         self._oprot.writeMessageBegin('getKeys', TMessageType.CALL, self._seqid)
@@ -382,19 +349,18 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    @gen.coroutine
     def recv_getKeys(self):
-        (fname, mtype, rseqid) = yield gen.Task(self._iprot.readMessageBegin)
+        (fname, mtype, rseqid) = self._iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
           x = TApplicationException()
-          yield gen.Task(x.read, self._iprot)
-          yield gen.Task(self._iprot.readMessageEnd)
+          x.read(self._iprot)
+          self._iprot.readMessageEnd()
           raise x
         result = getKeys_result()
-        yield gen.Task(result.read, self._iprot)
-        yield gen.Task(self._iprot.readMessageEnd)
+        result.read(self._iprot)
+        self._iprot.readMessageEnd()
         if result.success is not None:
-          raise gen.Return(result.success)
+          return result.success
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getKeys failed: unknown result");
 
 
@@ -411,143 +377,116 @@ class Processor(Iface, TProcessor):
         self._processMap["getTime"] = Processor.process_getTime
         self._processMap["getKeys"] = Processor.process_getKeys
 
-    @gen.coroutine
     def process(self, iprot, oprot):
-        (name, type, seqid) = yield gen.Task(iprot.readMessageBegin)
+        (name, type, seqid) = iprot.readMessageBegin()
         if name not in self._processMap:
-            yield gen.Task(iprot.skip,TType.STRUCT)
-            yield gen.Task(iprot.readMessageEnd)
+            iprot.skip(TType.STRUCT)
+            iprot.readMessageEnd()
             x = TApplicationException(TApplicationException.UNKNOWN_METHOD, 'Unknown function %s' % (name))
             oprot.writeMessageBegin(name, TMessageType.EXCEPTION, seqid)
             x.write(oprot)
             oprot.writeMessageEnd()
             oprot.trans.flush()
+            return
         else:
-            yield gen.Task(self._processMap[name], self, seqid, iprot, oprot)
+            self._processMap[name](self, seqid, iprot, oprot)
+        return True
 
-    @gen.coroutine
     def process_ping(self, seqid, iprot, oprot):
         args = ping_args()
-        yield gen.Task(args.read,iprot)
-        yield gen.Task(iprot.readMessageEnd)
+        args.read(iprot)
+        iprot.readMessageEnd()
         result = ping_result()
-        result.success = yield gen.Task(self._handler.ping, )
+        result.success = self._handler.ping()
         oprot.writeMessageBegin("ping", TMessageType.REPLY, seqid)
         result.write(oprot)
         oprot.writeMessageEnd()
         oprot.trans.flush()
 
-    @gen.coroutine
     def process_create(self, seqid, iprot, oprot):
         args = create_args()
-        yield gen.Task(args.read,iprot)
-        yield gen.Task(iprot.readMessageEnd)
+        args.read(iprot)
+        iprot.readMessageEnd()
         result = create_result()
-
-        def handle_exception(xtype, value, traceback):
-            if xtype == ForsunPlanError:
-                result.err = value
-            return True
-
-        with stack_context.ExceptionStackContext(handle_exception):
-            result.success = yield gen.Task(self._handler.create, args.key, args.second, args.minute, args.hour, args.day, args.month, args.week, args.action, args.params)
-
+        try:
+            result.success = self._handler.create(args.key, args.second, args.minute, args.hour, args.day, args.month, args.week, args.action, args.params)
+        except ForsunPlanError, err:
+            result.err = err
         oprot.writeMessageBegin("create", TMessageType.REPLY, seqid)
         result.write(oprot)
         oprot.writeMessageEnd()
         oprot.trans.flush()
 
-    @gen.coroutine
     def process_createTimeout(self, seqid, iprot, oprot):
         args = createTimeout_args()
-        yield gen.Task(args.read,iprot)
-        yield gen.Task(iprot.readMessageEnd)
+        args.read(iprot)
+        iprot.readMessageEnd()
         result = createTimeout_result()
-
-        def handle_exception(xtype, value, traceback):
-            if xtype == ForsunPlanError:
-                result.err = value
-            return True
-
-        with stack_context.ExceptionStackContext(handle_exception):
-            result.success = yield gen.Task(self._handler.createTimeout, args.key, args.second, args.minute, args.hour, args.day, args.month, args.week, args.count, args.action, args.params)
-
+        try:
+            result.success = self._handler.createTimeout(args.key, args.second, args.minute, args.hour, args.day, args.month, args.week, args.count, args.action, args.params)
+        except ForsunPlanError, err:
+            result.err = err
         oprot.writeMessageBegin("createTimeout", TMessageType.REPLY, seqid)
         result.write(oprot)
         oprot.writeMessageEnd()
         oprot.trans.flush()
 
-    @gen.coroutine
     def process_remove(self, seqid, iprot, oprot):
         args = remove_args()
-        yield gen.Task(args.read,iprot)
-        yield gen.Task(iprot.readMessageEnd)
+        args.read(iprot)
+        iprot.readMessageEnd()
         result = remove_result()
-
-        def handle_exception(xtype, value, traceback):
-            if xtype == ForsunPlanError:
-                result.err = value
-            return True
-
-        with stack_context.ExceptionStackContext(handle_exception):
-            result.success = yield gen.Task(self._handler.remove, args.key)
-
+        try:
+            result.success = self._handler.remove(args.key)
+        except ForsunPlanError, err:
+            result.err = err
         oprot.writeMessageBegin("remove", TMessageType.REPLY, seqid)
         result.write(oprot)
         oprot.writeMessageEnd()
         oprot.trans.flush()
 
-    @gen.coroutine
     def process_get(self, seqid, iprot, oprot):
         args = get_args()
-        yield gen.Task(args.read,iprot)
-        yield gen.Task(iprot.readMessageEnd)
+        args.read(iprot)
+        iprot.readMessageEnd()
         result = get_result()
-
-        def handle_exception(xtype, value, traceback):
-            if xtype == ForsunPlanError:
-                result.err = value
-            return True
-
-        with stack_context.ExceptionStackContext(handle_exception):
-            result.success = yield gen.Task(self._handler.get, args.key)
-
+        try:
+            result.success = self._handler.get(args.key)
+        except ForsunPlanError, err:
+            result.err = err
         oprot.writeMessageBegin("get", TMessageType.REPLY, seqid)
         result.write(oprot)
         oprot.writeMessageEnd()
         oprot.trans.flush()
 
-    @gen.coroutine
     def process_getCurrent(self, seqid, iprot, oprot):
         args = getCurrent_args()
-        yield gen.Task(args.read,iprot)
-        yield gen.Task(iprot.readMessageEnd)
+        args.read(iprot)
+        iprot.readMessageEnd()
         result = getCurrent_result()
-        result.success = yield gen.Task(self._handler.getCurrent, )
+        result.success = self._handler.getCurrent()
         oprot.writeMessageBegin("getCurrent", TMessageType.REPLY, seqid)
         result.write(oprot)
         oprot.writeMessageEnd()
         oprot.trans.flush()
 
-    @gen.coroutine
     def process_getTime(self, seqid, iprot, oprot):
         args = getTime_args()
-        yield gen.Task(args.read,iprot)
-        yield gen.Task(iprot.readMessageEnd)
+        args.read(iprot)
+        iprot.readMessageEnd()
         result = getTime_result()
-        result.success = yield gen.Task(self._handler.getTime, args.timestamp)
+        result.success = self._handler.getTime(args.timestamp)
         oprot.writeMessageBegin("getTime", TMessageType.REPLY, seqid)
         result.write(oprot)
         oprot.writeMessageEnd()
         oprot.trans.flush()
 
-    @gen.coroutine
     def process_getKeys(self, seqid, iprot, oprot):
         args = getKeys_args()
-        yield gen.Task(args.read,iprot)
-        yield gen.Task(iprot.readMessageEnd)
+        args.read(iprot)
+        iprot.readMessageEnd()
         result = getKeys_result()
-        result.success = yield gen.Task(self._handler.getKeys, args.prefix)
+        result.success = self._handler.getKeys(args.prefix)
         oprot.writeMessageBegin("getKeys", TMessageType.REPLY, seqid)
         result.write(oprot)
         oprot.writeMessageEnd()
@@ -561,20 +500,19 @@ class ping_args:
     thrift_spec = (
     )
 
-    @gen.coroutine
     def read(self, iprot):
         if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
             fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
             return
-        yield gen.Task(iprot.readStructBegin)
+        iprot.readStructBegin()
         while True:
-            (fname, ftype, fid) = yield gen.Task(iprot.readFieldBegin)
+            (fname, ftype, fid) = iprot.readFieldBegin()
             if ftype == TType.STOP:
                 break
             else:
-                yield gen.Task(iprot.skip,ftype)
-            yield gen.Task(iprot.readFieldEnd)
-        yield gen.Task(iprot.readStructEnd)
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
 
     def write(self, oprot):
         if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
@@ -612,25 +550,24 @@ class ping_result:
     def __init__(self, success=None,):
         self.success = success
 
-    @gen.coroutine
     def read(self, iprot):
         if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
             fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
             return
-        yield gen.Task(iprot.readStructBegin)
+        iprot.readStructBegin()
         while True:
-            (fname, ftype, fid) = yield gen.Task(iprot.readFieldBegin)
+            (fname, ftype, fid) = iprot.readFieldBegin()
             if ftype == TType.STOP:
                 break
             if fid == 0:
                 if ftype == TType.I16:
-                    self.success = yield gen.Task(iprot.readI16)
+                    self.success = iprot.readI16()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             else:
-                yield gen.Task(iprot.skip,ftype)
-            yield gen.Task(iprot.readFieldEnd)
-        yield gen.Task(iprot.readStructEnd)
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
 
     def write(self, oprot):
         if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
@@ -701,70 +638,69 @@ class create_args:
         ]
         self.params = params
 
-    @gen.coroutine
     def read(self, iprot):
         if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
             fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
             return
-        yield gen.Task(iprot.readStructBegin)
+        iprot.readStructBegin()
         while True:
-            (fname, ftype, fid) = yield gen.Task(iprot.readFieldBegin)
+            (fname, ftype, fid) = iprot.readFieldBegin()
             if ftype == TType.STOP:
                 break
             if fid == 1:
                 if ftype == TType.STRING:
-                    self.key = yield gen.Task(iprot.readString)
+                    self.key = iprot.readString()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 2:
                 if ftype == TType.I16:
-                    self.second = yield gen.Task(iprot.readI16)
+                    self.second = iprot.readI16()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 3:
                 if ftype == TType.I16:
-                    self.minute = yield gen.Task(iprot.readI16)
+                    self.minute = iprot.readI16()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 4:
                 if ftype == TType.I16:
-                    self.hour = yield gen.Task(iprot.readI16)
+                    self.hour = iprot.readI16()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 5:
                 if ftype == TType.I16:
-                    self.day = yield gen.Task(iprot.readI16)
+                    self.day = iprot.readI16()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 6:
                 if ftype == TType.I16:
-                    self.month = yield gen.Task(iprot.readI16)
+                    self.month = iprot.readI16()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 7:
                 if ftype == TType.I16:
-                    self.week = yield gen.Task(iprot.readI16)
+                    self.week = iprot.readI16()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 8:
                 if ftype == TType.STRING:
-                    self.action = yield gen.Task(iprot.readString)
+                    self.action = iprot.readString()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 9:
                 if ftype == TType.LIST:
                     self.params = []
-                    (_etype3, _size0) = iprot.readListBegin()
-                    for _i4 in xrange(_size0):
-                        _elem5 = yield gen.Task(iprot.readString)
-                        self.params.append(_elem5)
+                    (_etype10, _size7) = iprot.readListBegin()
+                    for _i11 in xrange(_size7):
+                        _elem12 = iprot.readString()
+                        self.params.append(_elem12)
                     iprot.readListEnd()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             else:
-                yield gen.Task(iprot.skip,ftype)
-            yield gen.Task(iprot.readFieldEnd)
-        yield gen.Task(iprot.readStructEnd)
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
 
     def write(self, oprot):
         if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
@@ -806,8 +742,8 @@ class create_args:
         if self.params is not None:
             oprot.writeFieldBegin('params', TType.LIST, 9)
             oprot.writeListBegin(TType.STRING, len(self.params))
-            for iter6 in self.params:
-                oprot.writeString(iter6)
+            for iter13 in self.params:
+                oprot.writeString(iter13)
             oprot.writeListEnd()
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
@@ -844,14 +780,13 @@ class create_result:
         self.success = success
         self.err = err
 
-    @gen.coroutine
     def read(self, iprot):
         if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
             fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
             return
-        yield gen.Task(iprot.readStructBegin)
+        iprot.readStructBegin()
         while True:
-            (fname, ftype, fid) = yield gen.Task(iprot.readFieldBegin)
+            (fname, ftype, fid) = iprot.readFieldBegin()
             if ftype == TType.STOP:
                 break
             if fid == 0:
@@ -859,17 +794,17 @@ class create_result:
                     self.success = ForsunPlan()
                     self.success.read(iprot)
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 1:
                 if ftype == TType.STRUCT:
                     self.err = ForsunPlanError()
                     self.err.read(iprot)
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             else:
-                yield gen.Task(iprot.skip,ftype)
-            yield gen.Task(iprot.readFieldEnd)
-        yield gen.Task(iprot.readStructEnd)
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
 
     def write(self, oprot):
         if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
@@ -947,75 +882,74 @@ class createTimeout_args:
         ]
         self.params = params
 
-    @gen.coroutine
     def read(self, iprot):
         if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
             fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
             return
-        yield gen.Task(iprot.readStructBegin)
+        iprot.readStructBegin()
         while True:
-            (fname, ftype, fid) = yield gen.Task(iprot.readFieldBegin)
+            (fname, ftype, fid) = iprot.readFieldBegin()
             if ftype == TType.STOP:
                 break
             if fid == 1:
                 if ftype == TType.STRING:
-                    self.key = yield gen.Task(iprot.readString)
+                    self.key = iprot.readString()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 2:
                 if ftype == TType.I16:
-                    self.second = yield gen.Task(iprot.readI16)
+                    self.second = iprot.readI16()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 3:
                 if ftype == TType.I16:
-                    self.minute = yield gen.Task(iprot.readI16)
+                    self.minute = iprot.readI16()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 4:
                 if ftype == TType.I16:
-                    self.hour = yield gen.Task(iprot.readI16)
+                    self.hour = iprot.readI16()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 5:
                 if ftype == TType.I16:
-                    self.day = yield gen.Task(iprot.readI16)
+                    self.day = iprot.readI16()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 6:
                 if ftype == TType.I16:
-                    self.month = yield gen.Task(iprot.readI16)
+                    self.month = iprot.readI16()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 7:
                 if ftype == TType.I16:
-                    self.week = yield gen.Task(iprot.readI16)
+                    self.week = iprot.readI16()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 8:
                 if ftype == TType.I16:
-                    self.count = yield gen.Task(iprot.readI16)
+                    self.count = iprot.readI16()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 9:
                 if ftype == TType.STRING:
-                    self.action = yield gen.Task(iprot.readString)
+                    self.action = iprot.readString()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 10:
                 if ftype == TType.LIST:
                     self.params = []
-                    (_etype10, _size7) = iprot.readListBegin()
-                    for _i11 in xrange(_size7):
-                        _elem12 = yield gen.Task(iprot.readString)
-                        self.params.append(_elem12)
+                    (_etype17, _size14) = iprot.readListBegin()
+                    for _i18 in xrange(_size14):
+                        _elem19 = iprot.readString()
+                        self.params.append(_elem19)
                     iprot.readListEnd()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             else:
-                yield gen.Task(iprot.skip,ftype)
-            yield gen.Task(iprot.readFieldEnd)
-        yield gen.Task(iprot.readStructEnd)
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
 
     def write(self, oprot):
         if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
@@ -1061,8 +995,8 @@ class createTimeout_args:
         if self.params is not None:
             oprot.writeFieldBegin('params', TType.LIST, 10)
             oprot.writeListBegin(TType.STRING, len(self.params))
-            for iter13 in self.params:
-                oprot.writeString(iter13)
+            for iter20 in self.params:
+                oprot.writeString(iter20)
             oprot.writeListEnd()
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
@@ -1099,14 +1033,13 @@ class createTimeout_result:
         self.success = success
         self.err = err
 
-    @gen.coroutine
     def read(self, iprot):
         if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
             fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
             return
-        yield gen.Task(iprot.readStructBegin)
+        iprot.readStructBegin()
         while True:
-            (fname, ftype, fid) = yield gen.Task(iprot.readFieldBegin)
+            (fname, ftype, fid) = iprot.readFieldBegin()
             if ftype == TType.STOP:
                 break
             if fid == 0:
@@ -1114,17 +1047,17 @@ class createTimeout_result:
                     self.success = ForsunPlan()
                     self.success.read(iprot)
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 1:
                 if ftype == TType.STRUCT:
                     self.err = ForsunPlanError()
                     self.err.read(iprot)
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             else:
-                yield gen.Task(iprot.skip,ftype)
-            yield gen.Task(iprot.readFieldEnd)
-        yield gen.Task(iprot.readStructEnd)
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
 
     def write(self, oprot):
         if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
@@ -1171,25 +1104,24 @@ class remove_args:
     def __init__(self, key=None,):
         self.key = key
 
-    @gen.coroutine
     def read(self, iprot):
         if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
             fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
             return
-        yield gen.Task(iprot.readStructBegin)
+        iprot.readStructBegin()
         while True:
-            (fname, ftype, fid) = yield gen.Task(iprot.readFieldBegin)
+            (fname, ftype, fid) = iprot.readFieldBegin()
             if ftype == TType.STOP:
                 break
             if fid == 1:
                 if ftype == TType.STRING:
-                    self.key = yield gen.Task(iprot.readString)
+                    self.key = iprot.readString()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             else:
-                yield gen.Task(iprot.skip,ftype)
-            yield gen.Task(iprot.readFieldEnd)
-        yield gen.Task(iprot.readStructEnd)
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
 
     def write(self, oprot):
         if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
@@ -1234,14 +1166,13 @@ class remove_result:
         self.success = success
         self.err = err
 
-    @gen.coroutine
     def read(self, iprot):
         if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
             fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
             return
-        yield gen.Task(iprot.readStructBegin)
+        iprot.readStructBegin()
         while True:
-            (fname, ftype, fid) = yield gen.Task(iprot.readFieldBegin)
+            (fname, ftype, fid) = iprot.readFieldBegin()
             if ftype == TType.STOP:
                 break
             if fid == 0:
@@ -1249,17 +1180,17 @@ class remove_result:
                     self.success = ForsunPlan()
                     self.success.read(iprot)
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 1:
                 if ftype == TType.STRUCT:
                     self.err = ForsunPlanError()
                     self.err.read(iprot)
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             else:
-                yield gen.Task(iprot.skip,ftype)
-            yield gen.Task(iprot.readFieldEnd)
-        yield gen.Task(iprot.readStructEnd)
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
 
     def write(self, oprot):
         if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
@@ -1306,25 +1237,24 @@ class get_args:
     def __init__(self, key=None,):
         self.key = key
 
-    @gen.coroutine
     def read(self, iprot):
         if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
             fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
             return
-        yield gen.Task(iprot.readStructBegin)
+        iprot.readStructBegin()
         while True:
-            (fname, ftype, fid) = yield gen.Task(iprot.readFieldBegin)
+            (fname, ftype, fid) = iprot.readFieldBegin()
             if ftype == TType.STOP:
                 break
             if fid == 1:
                 if ftype == TType.STRING:
-                    self.key = yield gen.Task(iprot.readString)
+                    self.key = iprot.readString()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             else:
-                yield gen.Task(iprot.skip,ftype)
-            yield gen.Task(iprot.readFieldEnd)
-        yield gen.Task(iprot.readStructEnd)
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
 
     def write(self, oprot):
         if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
@@ -1369,14 +1299,13 @@ class get_result:
         self.success = success
         self.err = err
 
-    @gen.coroutine
     def read(self, iprot):
         if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
             fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
             return
-        yield gen.Task(iprot.readStructBegin)
+        iprot.readStructBegin()
         while True:
-            (fname, ftype, fid) = yield gen.Task(iprot.readFieldBegin)
+            (fname, ftype, fid) = iprot.readFieldBegin()
             if ftype == TType.STOP:
                 break
             if fid == 0:
@@ -1384,17 +1313,17 @@ class get_result:
                     self.success = ForsunPlan()
                     self.success.read(iprot)
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             elif fid == 1:
                 if ftype == TType.STRUCT:
                     self.err = ForsunPlanError()
                     self.err.read(iprot)
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             else:
-                yield gen.Task(iprot.skip,ftype)
-            yield gen.Task(iprot.readFieldEnd)
-        yield gen.Task(iprot.readStructEnd)
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
 
     def write(self, oprot):
         if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
@@ -1432,20 +1361,19 @@ class getCurrent_args:
     thrift_spec = (
     )
 
-    @gen.coroutine
     def read(self, iprot):
         if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
             fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
             return
-        yield gen.Task(iprot.readStructBegin)
+        iprot.readStructBegin()
         while True:
-            (fname, ftype, fid) = yield gen.Task(iprot.readFieldBegin)
+            (fname, ftype, fid) = iprot.readFieldBegin()
             if ftype == TType.STOP:
                 break
             else:
-                yield gen.Task(iprot.skip,ftype)
-            yield gen.Task(iprot.readFieldEnd)
-        yield gen.Task(iprot.readStructEnd)
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
 
     def write(self, oprot):
         if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
@@ -1483,31 +1411,30 @@ class getCurrent_result:
     def __init__(self, success=None,):
         self.success = success
 
-    @gen.coroutine
     def read(self, iprot):
         if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
             fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
             return
-        yield gen.Task(iprot.readStructBegin)
+        iprot.readStructBegin()
         while True:
-            (fname, ftype, fid) = yield gen.Task(iprot.readFieldBegin)
+            (fname, ftype, fid) = iprot.readFieldBegin()
             if ftype == TType.STOP:
                 break
             if fid == 0:
                 if ftype == TType.LIST:
                     self.success = []
-                    (_etype17, _size14) = iprot.readListBegin()
-                    for _i18 in xrange(_size14):
-                        _elem19 = ForsunPlan()
-                        _elem19.read(iprot)
-                        self.success.append(_elem19)
+                    (_etype24, _size21) = iprot.readListBegin()
+                    for _i25 in xrange(_size21):
+                        _elem26 = ForsunPlan()
+                        _elem26.read(iprot)
+                        self.success.append(_elem26)
                     iprot.readListEnd()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             else:
-                yield gen.Task(iprot.skip,ftype)
-            yield gen.Task(iprot.readFieldEnd)
-        yield gen.Task(iprot.readStructEnd)
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
 
     def write(self, oprot):
         if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
@@ -1517,8 +1444,8 @@ class getCurrent_result:
         if self.success is not None:
             oprot.writeFieldBegin('success', TType.LIST, 0)
             oprot.writeListBegin(TType.STRUCT, len(self.success))
-            for iter20 in self.success:
-                iter20.write(oprot)
+            for iter27 in self.success:
+                iter27.write(oprot)
             oprot.writeListEnd()
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
@@ -1553,25 +1480,24 @@ class getTime_args:
     def __init__(self, timestamp=None,):
         self.timestamp = timestamp
 
-    @gen.coroutine
     def read(self, iprot):
         if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
             fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
             return
-        yield gen.Task(iprot.readStructBegin)
+        iprot.readStructBegin()
         while True:
-            (fname, ftype, fid) = yield gen.Task(iprot.readFieldBegin)
+            (fname, ftype, fid) = iprot.readFieldBegin()
             if ftype == TType.STOP:
                 break
             if fid == 1:
                 if ftype == TType.I32:
-                    self.timestamp = yield gen.Task(iprot.readI32)
+                    self.timestamp = iprot.readI32()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             else:
-                yield gen.Task(iprot.skip,ftype)
-            yield gen.Task(iprot.readFieldEnd)
-        yield gen.Task(iprot.readStructEnd)
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
 
     def write(self, oprot):
         if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
@@ -1613,31 +1539,30 @@ class getTime_result:
     def __init__(self, success=None,):
         self.success = success
 
-    @gen.coroutine
     def read(self, iprot):
         if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
             fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
             return
-        yield gen.Task(iprot.readStructBegin)
+        iprot.readStructBegin()
         while True:
-            (fname, ftype, fid) = yield gen.Task(iprot.readFieldBegin)
+            (fname, ftype, fid) = iprot.readFieldBegin()
             if ftype == TType.STOP:
                 break
             if fid == 0:
                 if ftype == TType.LIST:
                     self.success = []
-                    (_etype24, _size21) = iprot.readListBegin()
-                    for _i25 in xrange(_size21):
-                        _elem26 = ForsunPlan()
-                        _elem26.read(iprot)
-                        self.success.append(_elem26)
+                    (_etype31, _size28) = iprot.readListBegin()
+                    for _i32 in xrange(_size28):
+                        _elem33 = ForsunPlan()
+                        _elem33.read(iprot)
+                        self.success.append(_elem33)
                     iprot.readListEnd()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             else:
-                yield gen.Task(iprot.skip,ftype)
-            yield gen.Task(iprot.readFieldEnd)
-        yield gen.Task(iprot.readStructEnd)
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
 
     def write(self, oprot):
         if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
@@ -1647,8 +1572,8 @@ class getTime_result:
         if self.success is not None:
             oprot.writeFieldBegin('success', TType.LIST, 0)
             oprot.writeListBegin(TType.STRUCT, len(self.success))
-            for iter27 in self.success:
-                iter27.write(oprot)
+            for iter34 in self.success:
+                iter34.write(oprot)
             oprot.writeListEnd()
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
@@ -1683,25 +1608,24 @@ class getKeys_args:
     def __init__(self, prefix=None,):
         self.prefix = prefix
 
-    @gen.coroutine
     def read(self, iprot):
         if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
             fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
             return
-        yield gen.Task(iprot.readStructBegin)
+        iprot.readStructBegin()
         while True:
-            (fname, ftype, fid) = yield gen.Task(iprot.readFieldBegin)
+            (fname, ftype, fid) = iprot.readFieldBegin()
             if ftype == TType.STOP:
                 break
             if fid == 1:
                 if ftype == TType.STRING:
-                    self.prefix = yield gen.Task(iprot.readString)
+                    self.prefix = iprot.readString()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             else:
-                yield gen.Task(iprot.skip,ftype)
-            yield gen.Task(iprot.readFieldEnd)
-        yield gen.Task(iprot.readStructEnd)
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
 
     def write(self, oprot):
         if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
@@ -1743,30 +1667,29 @@ class getKeys_result:
     def __init__(self, success=None,):
         self.success = success
 
-    @gen.coroutine
     def read(self, iprot):
         if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
             fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
             return
-        yield gen.Task(iprot.readStructBegin)
+        iprot.readStructBegin()
         while True:
-            (fname, ftype, fid) = yield gen.Task(iprot.readFieldBegin)
+            (fname, ftype, fid) = iprot.readFieldBegin()
             if ftype == TType.STOP:
                 break
             if fid == 0:
                 if ftype == TType.LIST:
                     self.success = []
-                    (_etype31, _size28) = iprot.readListBegin()
-                    for _i32 in xrange(_size28):
-                        _elem33 = yield gen.Task(iprot.readString)
-                        self.success.append(_elem33)
+                    (_etype38, _size35) = iprot.readListBegin()
+                    for _i39 in xrange(_size35):
+                        _elem40 = iprot.readString()
+                        self.success.append(_elem40)
                     iprot.readListEnd()
                 else:
-                    yield gen.Task(iprot.skip,ftype)
+                    iprot.skip(ftype)
             else:
-                yield gen.Task(iprot.skip,ftype)
-            yield gen.Task(iprot.readFieldEnd)
-        yield gen.Task(iprot.readStructEnd)
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
 
     def write(self, oprot):
         if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
@@ -1776,8 +1699,8 @@ class getKeys_result:
         if self.success is not None:
             oprot.writeFieldBegin('success', TType.LIST, 0)
             oprot.writeListBegin(TType.STRING, len(self.success))
-            for iter34 in self.success:
-                oprot.writeString(iter34)
+            for iter41 in self.success:
+                oprot.writeString(iter41)
             oprot.writeListEnd()
             oprot.writeFieldEnd()
         oprot.writeFieldStop()

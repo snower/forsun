@@ -3,6 +3,7 @@
 # create by: snower
 
 import logging
+import traceback
 import threading
 from tornado.ioloop import IOLoop
 from torthrift.protocol import TBinaryProtocolFactory
@@ -36,7 +37,13 @@ class ThriftServer(Server):
         ioloop.start()
 
     def start(self):
-        self.thread = threading.Thread(target=self.serve)
+        def _():
+            try:
+                self.serve()
+            except Exception as e:
+                logging.error("thrift server error: %s\n%s", e, traceback.format_exc())
+
+        self.thread = threading.Thread(target=_)
         self.thread.setDaemon(True)
         self.thread.start()
 

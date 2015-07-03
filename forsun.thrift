@@ -19,7 +19,7 @@ struct ForsunPlan {
     12: i16 current_count = 0,
     13: i32 last_timeout = 0,
     14:string action = "shell",
-    15:string params = "{}"
+    15:list<string> params = []
 }
 
 service Forsun{

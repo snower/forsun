@@ -3,7 +3,7 @@
 #
 # DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
 #
-#  options string: py:tornado
+#  options string: py
 #
 
 from thrift.Thrift import TType, TMessageType, TException, TApplicationException

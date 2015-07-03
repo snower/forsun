@@ -12,21 +12,21 @@ from ...plan import Plan
 from ..store import Store
 
 class RedisClient(object):
-    def __init__(self, *args, **kwargs):
-        self.db = tornadoredis.Client(*args, **kwargs)
+    def __init__(self, host, port, selected_db=0, max_connections=4):
+        pool = tornadoredis.ConnectionPool(
+            max_connections = max_connections,
+            wait_for_available = True,
+            host= host,
+            port = port,
+        )
+        self.db = tornadoredis.Client(connection_pool=pool, selected_db=selected_db)
 
     def __getattr__(self, name):
         method = getattr(self.db, name)
+        @gen.coroutine
         def _(*args, **kwargs):
-            future = TracebackFuture()
-            def finish(res):
-                future.set_result(res)
-            try:
-                kwargs["callback"] = finish
-                method(*args, **kwargs)
-            except:
-                future.set_exc_info(sys.exc_info())
-            return future
+            res = yield gen.Task(method, *args, **kwargs)
+            raise gen.Return(res)
         setattr(self, name, _)
         return _
 

@@ -13,19 +13,21 @@ from ..store import Store
 
 class RedisClient(object):
     def __init__(self, host, port, selected_db=0, max_connections=4):
-        pool = tornadoredis.ConnectionPool(
+        self.selected_db = selected_db
+        self.pool = tornadoredis.ConnectionPool(
             max_connections = max_connections,
             wait_for_available = True,
             host= host,
             port = port,
         )
-        self.db = tornadoredis.Client(connection_pool=pool, selected_db=selected_db)
 
     def __getattr__(self, name):
-        method = getattr(self.db, name)
         @gen.coroutine
         def _(*args, **kwargs):
+            db = tornadoredis.Client(connection_pool=self.pool, selected_db=self.selected_db)
+            method = getattr(db, name)
             res = yield gen.Task(method, *args, **kwargs)
+            yield gen.Task(db.disconnect)
             raise gen.Return(res)
         setattr(self, name, _)
         return _

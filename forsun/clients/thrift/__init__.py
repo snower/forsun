@@ -30,7 +30,7 @@ class ThriftClient(object):
     def create(self, key, second, minute = -1, hour = -1, day = -1, month = -1, week = -1, action="shell", params=[]):
         return self.execute("create", key, second, minute, hour, day, month, week, action, params)
 
-    def create_timeout(self, key, second, minute = -1, hour = -1, day = -1, month = -1, week = -1, count=0, action="event", params=[]):
+    def create_timeout(self, key, second, minute = -1, hour = -1, day = -1, month = -1, week = -1, count=1, action="shell", params=[]):
         return self.execute("createTimeout", key, second, minute, hour, day, month, week, count, action, params)
 
     def remove(self, key):
@@ -69,7 +69,7 @@ class TorThriftClient(object):
         raise gen.Return(res)
 
     @gen.coroutine
-    def create_timeout(self, key, second, minute = -1, hour = -1, day = -1, month = -1, week = -1, count=0, action="event", params=[]):
+    def create_timeout(self, key, second, minute = -1, hour = -1, day = -1, month = -1, week = -1, count=1, action="shell", params=[]):
         res = yield self.pool.createTimeout(key, second, minute, hour, day, month, week, count, action, params)
         raise gen.Return(res)
 

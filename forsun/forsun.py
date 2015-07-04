@@ -2,6 +2,8 @@
 # 15/6/10
 # create by: snower
 
+import os
+import sys
 import logging
 import traceback
 import signal
@@ -12,12 +14,21 @@ import action
 import servers
 import timer
 import log
+import config
 
 class Forsun(object):
     def __init__(self):
         log.init_config()
         self.store = store.get_store()
         self.server = servers.get_server(self)
+
+        self.init_extensions()
+
+    def init_extensions(self):
+        extensions_path = config.get("EXTENSIONS_PATH", "")
+        for ext in extensions_path.split(";"):
+            if ext and os.path.exists(ext):
+                sys.path.append(os.path.abspath(ext))
 
     @gen.coroutine
     def execute_action(self, ts, plan):

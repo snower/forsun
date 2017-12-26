@@ -11,7 +11,6 @@ from tornado.ioloop import IOLoop
 from tornado import gen
 import store
 import action
-import servers
 import timer
 import log
 import config
@@ -20,7 +19,6 @@ class Forsun(object):
     def __init__(self):
         log.init_config()
         self.store = store.get_store()
-        self.server = servers.get_server(self)
 
         self.init_extensions()
 

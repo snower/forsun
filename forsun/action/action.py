@@ -4,7 +4,8 @@
 
 from tornado import gen
 
-class ExecuteActionError(Exception):pass
+class ExecuteActionError(Exception):
+    pass
 
 class Action(object):
     def __init__(self, ts, plan, action, params):

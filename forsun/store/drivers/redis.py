@@ -49,28 +49,18 @@ class RedisStore(Store):
         return "%s:%s" % (self.prefix, key)
 
     @gen.coroutine
-    def add_plan(self, plan):
-        res = yield self.db.set(self.get_key("key:%s" % plan.key), plan.dupms(), expire = int(plan.next_time - time.time() + 30))
+    def set_plan(self, plan):
+        res = yield self.db.set(self.get_key("plan:%s" % plan.key), plan.dupms(), expire = int(plan.next_time - time.time() + 30))
         raise gen.Return(res)
 
     @gen.coroutine
     def remove_plan(self, key):
-        res = yield self.db.delete(self.get_key("key:%s" % key))
+        res = yield self.db.delete(self.get_key("plan:%s" % key))
         raise gen.Return(res)
 
     @gen.coroutine
-    def has_plan(self, key):
-        res = yield self.db.exists(self.get_key("key:%s" % key))
-        raise gen.Return(bool(res))
-
-    @gen.coroutine
-    def store_plan(self, plan):
-        res = yield self.db.set(self.get_key("key:%s" % plan.key), plan.dupms(), expire = int(plan.next_time - time.time() + 30))
-        raise gen.Return(res)
-
-    @gen.coroutine
-    def load_plan(self, key):
-        res = yield self.db.get(self.get_key("key:%s" % key))
+    def get_plan(self, key):
+        res = yield self.db.get(self.get_key("plan:%s" % key))
         if not res:
             raise gen.Return(None)
         try:
@@ -103,5 +93,5 @@ class RedisStore(Store):
 
     @gen.coroutine
     def get_plan_keys(self, prefix=""):
-        res = yield self.db.keys(self.get_key("key:*" % prefix))
+        res = yield self.db.keys(self.get_key("%s:*" % prefix))
         raise gen.Return(res)

@@ -6,8 +6,11 @@ __config = {}
 
 DEFAULT_CONFIG = {
     "LOG_FILE": "/var/log/funsun.log",
-    "LOG_LEVEL": "INFO",
+    "LOG_LEVEL": "ERROR",
     "LOG_FORMAT": "",
+
+    "BIND_ADDRESS": "127.0.0.1",
+    "PORT": 5643,
 
     "STORE_DRIVER": "redis",
     "STORE_REDIS_HOST": "127.0.0.1",
@@ -15,10 +18,6 @@ DEFAULT_CONFIG = {
     "STORE_REDIS_DB": 0,
     "STORE_REDIS_PREFIX": "forsun",
     "STORE_REDIS_SERVER_ID": "",
-
-    "SERVER_DRIVER": "thrift",
-    "SERVER_THRIFT_BIND_ADDRESS": "127.0.0.1",
-    "SERVER_THRIFT_PORT": 5643,
 }
 
 def get(name, default=None):

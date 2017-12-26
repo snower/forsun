@@ -4,16 +4,15 @@
 
 import time
 import signal
+from Queue import Queue, Empty
 
 __time_out_callback = None
+__time_out_queues = Queue()
 __is_stop = False
 __current_time = int(time.time())
 
 def handler(signum, frame):
-    global __current_time, __time_out_callback
-    __current_time = int(time.time())
-    if __time_out_callback:
-        __time_out_callback(__current_time)
+    __time_out_queues.put(int(time.time()), False)
 
 def start(callback):
     global __time_out_callback, __is_stop
@@ -25,10 +24,17 @@ def stop():
     __is_stop = True
 
 def loop():
+    global __current_time, __time_out_callback
+
     signal.signal(signal.SIGALRM, handler)
     signal.setitimer(signal.ITIMER_REAL, 1, 1)
     while not __is_stop:
-        time.sleep(0.1)
+        try:
+            __current_time = __time_out_queues.get(True, 0.5)
+            if __time_out_callback:
+                __time_out_callback(__current_time)
+        except Empty:
+            continue
 
 def current():
     return __current_time

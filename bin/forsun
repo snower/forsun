@@ -3,3 +3,16 @@
 # -*- coding: utf-8 -*-
 # 15/6/27
 # create by: snower
+
+import os
+import sys
+
+sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
+
+import argparse
+import multiprocessing
+from forsun import Forsun, config
+
+parser = argparse.ArgumentParser(description='High-performance timing scheduling service')
+parser.add_argument('--bind', dest='bind_host', default="0.0.0.0", help='bind host (default: 0.0.0.0)')
+parser.add_argument('--port', dest='bind_port', default=6458, type=int, help='bind port (default: 6458)')

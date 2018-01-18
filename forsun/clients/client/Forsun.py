@@ -81,6 +81,15 @@ class Iface(object):
         """
         pass
 
+    def forsun_call(self, key, ts, params):
+        """
+        Parameters:
+         - key
+         - ts
+         - params
+        """
+        pass
+
 
 class Client(Iface):
     def __init__(self, iprot, oprot=None):
@@ -369,6 +378,39 @@ class Client(Iface):
             return result.success
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getKeys failed: unknown result")
 
+    def forsun_call(self, key, ts, params):
+        """
+        Parameters:
+         - key
+         - ts
+         - params
+        """
+        self.send_forsun_call(key, ts, params)
+        self.recv_forsun_call()
+
+    def send_forsun_call(self, key, ts, params):
+        self._oprot.writeMessageBegin('forsun_call', TMessageType.CALL, self._seqid)
+        args = forsun_call_args()
+        args.key = key
+        args.ts = ts
+        args.params = params
+        args.write(self._oprot)
+        self._oprot.writeMessageEnd()
+        self._oprot.trans.flush()
+
+    def recv_forsun_call(self):
+        iprot = self._iprot
+        (fname, mtype, rseqid) = iprot.readMessageBegin()
+        if mtype == TMessageType.EXCEPTION:
+            x = TApplicationException()
+            x.read(iprot)
+            iprot.readMessageEnd()
+            raise x
+        result = forsun_call_result()
+        result.read(iprot)
+        iprot.readMessageEnd()
+        return
+
 
 class Processor(Iface, TProcessor):
     def __init__(self, handler):
@@ -382,6 +424,7 @@ class Processor(Iface, TProcessor):
         self._processMap["getCurrent"] = Processor.process_getCurrent
         self._processMap["getTime"] = Processor.process_getTime
         self._processMap["getKeys"] = Processor.process_getKeys
+        self._processMap["forsun_call"] = Processor.process_forsun_call
 
     def process(self, iprot, oprot):
         (name, type, seqid) = iprot.readMessageBegin()
@@ -562,6 +605,25 @@ class Processor(Iface, TProcessor):
         oprot.writeMessageEnd()
         oprot.trans.flush()
 
+    def process_forsun_call(self, seqid, iprot, oprot):
+        args = forsun_call_args()
+        args.read(iprot)
+        iprot.readMessageEnd()
+        result = forsun_call_result()
+        try:
+            self._handler.forsun_call(args.key, args.ts, args.params)
+            msg_type = TMessageType.REPLY
+        except (TTransport.TTransportException, KeyboardInterrupt, SystemExit):
+            raise
+        except Exception as ex:
+            msg_type = TMessageType.EXCEPTION
+            logging.exception(ex)
+            result = TApplicationException(TApplicationException.INTERNAL_ERROR, 'Internal error')
+        oprot.writeMessageBegin("forsun_call", msg_type, seqid)
+        result.write(oprot)
+        oprot.writeMessageEnd()
+        oprot.trans.flush()
+
 # HELPER FUNCTIONS AND STRUCTURES
 
 
@@ -690,8 +752,8 @@ class create_args(object):
         (6, TType.I16, 'month', None, -1, ),  # 6
         (7, TType.I16, 'week', None, -1, ),  # 7
         (8, TType.STRING, 'action', 'UTF8', "shell", ),  # 8
-        (9, TType.LIST, 'params', (TType.STRING, 'UTF8', False), [
-        ], ),  # 9
+        (9, TType.MAP, 'params', (TType.STRING, 'UTF8', TType.STRING, 'UTF8', False), {
+        }, ),  # 9
     )
 
     def __init__(self, key=None, second=None, minute=thrift_spec[3][4], hour=thrift_spec[4][4], day=thrift_spec[5][4], month=thrift_spec[6][4], week=thrift_spec[7][4], action=thrift_spec[8][4], params=thrift_spec[9][4],):
@@ -704,8 +766,8 @@ class create_args(object):
         self.week = week
         self.action = action
         if params is self.thrift_spec[9][4]:
-            params = [
-            ]
+            params = {
+            }
         self.params = params
 
     def read(self, iprot):
@@ -758,13 +820,14 @@ class create_args(object):
                 else:
                     iprot.skip(ftype)
             elif fid == 9:
-                if ftype == TType.LIST:
-                    self.params = []
-                    (_etype10, _size7) = iprot.readListBegin()
-                    for _i11 in range(_size7):
-                        _elem12 = iprot.readString().decode('utf-8') if sys.version_info[0] == 2 else iprot.readString()
-                        self.params.append(_elem12)
-                    iprot.readListEnd()
+                if ftype == TType.MAP:
+                    self.params = {}
+                    (_ktype10, _vtype11, _size9) = iprot.readMapBegin()
+                    for _i13 in range(_size9):
+                        _key14 = iprot.readString().decode('utf-8') if sys.version_info[0] == 2 else iprot.readString()
+                        _val15 = iprot.readString().decode('utf-8') if sys.version_info[0] == 2 else iprot.readString()
+                        self.params[_key14] = _val15
+                    iprot.readMapEnd()
                 else:
                     iprot.skip(ftype)
             else:
@@ -810,11 +873,12 @@ class create_args(object):
             oprot.writeString(self.action.encode('utf-8') if sys.version_info[0] == 2 else self.action)
             oprot.writeFieldEnd()
         if self.params is not None:
-            oprot.writeFieldBegin('params', TType.LIST, 9)
-            oprot.writeListBegin(TType.STRING, len(self.params))
-            for iter13 in self.params:
-                oprot.writeString(iter13.encode('utf-8') if sys.version_info[0] == 2 else iter13)
-            oprot.writeListEnd()
+            oprot.writeFieldBegin('params', TType.MAP, 9)
+            oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.params))
+            for kiter16, viter17 in self.params.items():
+                oprot.writeString(kiter16.encode('utf-8') if sys.version_info[0] == 2 else kiter16)
+                oprot.writeString(viter17.encode('utf-8') if sys.version_info[0] == 2 else viter17)
+            oprot.writeMapEnd()
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()
@@ -931,10 +995,10 @@ class createTimeout_args(object):
         (5, TType.I16, 'day', None, -1, ),  # 5
         (6, TType.I16, 'month', None, -1, ),  # 6
         (7, TType.I16, 'week', None, -1, ),  # 7
-        (8, TType.I16, 'count', None, 0, ),  # 8
+        (8, TType.I16, 'count', None, 1, ),  # 8
         (9, TType.STRING, 'action', 'UTF8', "shell", ),  # 9
-        (10, TType.LIST, 'params', (TType.STRING, 'UTF8', False), [
-        ], ),  # 10
+        (10, TType.MAP, 'params', (TType.STRING, 'UTF8', TType.STRING, 'UTF8', False), {
+        }, ),  # 10
     )
 
     def __init__(self, key=None, second=None, minute=thrift_spec[3][4], hour=thrift_spec[4][4], day=thrift_spec[5][4], month=thrift_spec[6][4], week=thrift_spec[7][4], count=thrift_spec[8][4], action=thrift_spec[9][4], params=thrift_spec[10][4],):
@@ -948,8 +1012,8 @@ class createTimeout_args(object):
         self.count = count
         self.action = action
         if params is self.thrift_spec[10][4]:
-            params = [
-            ]
+            params = {
+            }
         self.params = params
 
     def read(self, iprot):
@@ -1007,13 +1071,14 @@ class createTimeout_args(object):
                 else:
                     iprot.skip(ftype)
             elif fid == 10:
-                if ftype == TType.LIST:
-                    self.params = []
-                    (_etype17, _size14) = iprot.readListBegin()
-                    for _i18 in range(_size14):
-                        _elem19 = iprot.readString().decode('utf-8') if sys.version_info[0] == 2 else iprot.readString()
-                        self.params.append(_elem19)
-                    iprot.readListEnd()
+                if ftype == TType.MAP:
+                    self.params = {}
+                    (_ktype19, _vtype20, _size18) = iprot.readMapBegin()
+                    for _i22 in range(_size18):
+                        _key23 = iprot.readString().decode('utf-8') if sys.version_info[0] == 2 else iprot.readString()
+                        _val24 = iprot.readString().decode('utf-8') if sys.version_info[0] == 2 else iprot.readString()
+                        self.params[_key23] = _val24
+                    iprot.readMapEnd()
                 else:
                     iprot.skip(ftype)
             else:
@@ -1063,11 +1128,12 @@ class createTimeout_args(object):
             oprot.writeString(self.action.encode('utf-8') if sys.version_info[0] == 2 else self.action)
             oprot.writeFieldEnd()
         if self.params is not None:
-            oprot.writeFieldBegin('params', TType.LIST, 10)
-            oprot.writeListBegin(TType.STRING, len(self.params))
-            for iter20 in self.params:
-                oprot.writeString(iter20.encode('utf-8') if sys.version_info[0] == 2 else iter20)
-            oprot.writeListEnd()
+            oprot.writeFieldBegin('params', TType.MAP, 10)
+            oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.params))
+            for kiter25, viter26 in self.params.items():
+                oprot.writeString(kiter25.encode('utf-8') if sys.version_info[0] == 2 else kiter25)
+                oprot.writeString(viter26.encode('utf-8') if sys.version_info[0] == 2 else viter26)
+            oprot.writeMapEnd()
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()
@@ -1493,11 +1559,11 @@ class getCurrent_result(object):
             if fid == 0:
                 if ftype == TType.LIST:
                     self.success = []
-                    (_etype24, _size21) = iprot.readListBegin()
-                    for _i25 in range(_size21):
-                        _elem26 = ForsunPlan()
-                        _elem26.read(iprot)
-                        self.success.append(_elem26)
+                    (_etype30, _size27) = iprot.readListBegin()
+                    for _i31 in range(_size27):
+                        _elem32 = ForsunPlan()
+                        _elem32.read(iprot)
+                        self.success.append(_elem32)
                     iprot.readListEnd()
                 else:
                     iprot.skip(ftype)
@@ -1514,8 +1580,8 @@ class getCurrent_result(object):
         if self.success is not None:
             oprot.writeFieldBegin('success', TType.LIST, 0)
             oprot.writeListBegin(TType.STRUCT, len(self.success))
-            for iter27 in self.success:
-                iter27.write(oprot)
+            for iter33 in self.success:
+                iter33.write(oprot)
             oprot.writeListEnd()
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
@@ -1621,11 +1687,11 @@ class getTime_result(object):
             if fid == 0:
                 if ftype == TType.LIST:
                     self.success = []
-                    (_etype31, _size28) = iprot.readListBegin()
-                    for _i32 in range(_size28):
-                        _elem33 = ForsunPlan()
-                        _elem33.read(iprot)
-                        self.success.append(_elem33)
+                    (_etype37, _size34) = iprot.readListBegin()
+                    for _i38 in range(_size34):
+                        _elem39 = ForsunPlan()
+                        _elem39.read(iprot)
+                        self.success.append(_elem39)
                     iprot.readListEnd()
                 else:
                     iprot.skip(ftype)
@@ -1642,8 +1708,8 @@ class getTime_result(object):
         if self.success is not None:
             oprot.writeFieldBegin('success', TType.LIST, 0)
             oprot.writeListBegin(TType.STRUCT, len(self.success))
-            for iter34 in self.success:
-                iter34.write(oprot)
+            for iter40 in self.success:
+                iter40.write(oprot)
             oprot.writeListEnd()
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
@@ -1749,10 +1815,10 @@ class getKeys_result(object):
             if fid == 0:
                 if ftype == TType.LIST:
                     self.success = []
-                    (_etype38, _size35) = iprot.readListBegin()
-                    for _i39 in range(_size35):
-                        _elem40 = iprot.readString().decode('utf-8') if sys.version_info[0] == 2 else iprot.readString()
-                        self.success.append(_elem40)
+                    (_etype44, _size41) = iprot.readListBegin()
+                    for _i45 in range(_size41):
+                        _elem46 = iprot.readString().decode('utf-8') if sys.version_info[0] == 2 else iprot.readString()
+                        self.success.append(_elem46)
                     iprot.readListEnd()
                 else:
                     iprot.skip(ftype)
@@ -1769,10 +1835,146 @@ class getKeys_result(object):
         if self.success is not None:
             oprot.writeFieldBegin('success', TType.LIST, 0)
             oprot.writeListBegin(TType.STRING, len(self.success))
-            for iter41 in self.success:
-                oprot.writeString(iter41.encode('utf-8') if sys.version_info[0] == 2 else iter41)
+            for iter47 in self.success:
+                oprot.writeString(iter47.encode('utf-8') if sys.version_info[0] == 2 else iter47)
             oprot.writeListEnd()
             oprot.writeFieldEnd()
+        oprot.writeFieldStop()
+        oprot.writeStructEnd()
+
+    def validate(self):
+        return
+
+    def __repr__(self):
+        L = ['%s=%r' % (key, value)
+             for key, value in self.__dict__.items()]
+        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not (self == other)
+
+
+class forsun_call_args(object):
+    """
+    Attributes:
+     - key
+     - ts
+     - params
+    """
+
+    thrift_spec = (
+        None,  # 0
+        (1, TType.STRING, 'key', 'UTF8', None, ),  # 1
+        (2, TType.I32, 'ts', None, None, ),  # 2
+        (3, TType.MAP, 'params', (TType.STRING, 'UTF8', TType.STRING, 'UTF8', False), None, ),  # 3
+    )
+
+    def __init__(self, key=None, ts=None, params=None,):
+        self.key = key
+        self.ts = ts
+        self.params = params
+
+    def read(self, iprot):
+        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
+            iprot._fast_decode(self, iprot, (self.__class__, self.thrift_spec))
+            return
+        iprot.readStructBegin()
+        while True:
+            (fname, ftype, fid) = iprot.readFieldBegin()
+            if ftype == TType.STOP:
+                break
+            if fid == 1:
+                if ftype == TType.STRING:
+                    self.key = iprot.readString().decode('utf-8') if sys.version_info[0] == 2 else iprot.readString()
+                else:
+                    iprot.skip(ftype)
+            elif fid == 2:
+                if ftype == TType.I32:
+                    self.ts = iprot.readI32()
+                else:
+                    iprot.skip(ftype)
+            elif fid == 3:
+                if ftype == TType.MAP:
+                    self.params = {}
+                    (_ktype49, _vtype50, _size48) = iprot.readMapBegin()
+                    for _i52 in range(_size48):
+                        _key53 = iprot.readString().decode('utf-8') if sys.version_info[0] == 2 else iprot.readString()
+                        _val54 = iprot.readString().decode('utf-8') if sys.version_info[0] == 2 else iprot.readString()
+                        self.params[_key53] = _val54
+                    iprot.readMapEnd()
+                else:
+                    iprot.skip(ftype)
+            else:
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
+
+    def write(self, oprot):
+        if oprot._fast_encode is not None and self.thrift_spec is not None:
+            oprot.trans.write(oprot._fast_encode(self, (self.__class__, self.thrift_spec)))
+            return
+        oprot.writeStructBegin('forsun_call_args')
+        if self.key is not None:
+            oprot.writeFieldBegin('key', TType.STRING, 1)
+            oprot.writeString(self.key.encode('utf-8') if sys.version_info[0] == 2 else self.key)
+            oprot.writeFieldEnd()
+        if self.ts is not None:
+            oprot.writeFieldBegin('ts', TType.I32, 2)
+            oprot.writeI32(self.ts)
+            oprot.writeFieldEnd()
+        if self.params is not None:
+            oprot.writeFieldBegin('params', TType.MAP, 3)
+            oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.params))
+            for kiter55, viter56 in self.params.items():
+                oprot.writeString(kiter55.encode('utf-8') if sys.version_info[0] == 2 else kiter55)
+                oprot.writeString(viter56.encode('utf-8') if sys.version_info[0] == 2 else viter56)
+            oprot.writeMapEnd()
+            oprot.writeFieldEnd()
+        oprot.writeFieldStop()
+        oprot.writeStructEnd()
+
+    def validate(self):
+        return
+
+    def __repr__(self):
+        L = ['%s=%r' % (key, value)
+             for key, value in self.__dict__.items()]
+        return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not (self == other)
+
+
+class forsun_call_result(object):
+
+    thrift_spec = (
+    )
+
+    def read(self, iprot):
+        if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
+            iprot._fast_decode(self, iprot, (self.__class__, self.thrift_spec))
+            return
+        iprot.readStructBegin()
+        while True:
+            (fname, ftype, fid) = iprot.readFieldBegin()
+            if ftype == TType.STOP:
+                break
+            else:
+                iprot.skip(ftype)
+            iprot.readFieldEnd()
+        iprot.readStructEnd()
+
+    def write(self, oprot):
+        if oprot._fast_encode is not None and self.thrift_spec is not None:
+            oprot.trans.write(oprot._fast_encode(self, (self.__class__, self.thrift_spec)))
+            return
+        oprot.writeStructBegin('forsun_call_result')
         oprot.writeFieldStop()
         oprot.writeStructEnd()
 

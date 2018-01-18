@@ -27,50 +27,16 @@ class ShellAction(Action):
         if not self.params:
             raise ExecuteActionError("cmd is empty")
 
-        cmd = self.params[0]
-        args = self.params[1] if len(self.params) >= 2 and self.params[1] else ""
-        env = self.params[2] if len(self.params) >= 3 and self.params[2] else '{}'
-        if env:
-            try:
-                env = json.loads(env)
-            except:
-                env = {}
-        options = self.params[3] if len(self.params) >= 4 and self.params[3] else '{}'
-        if options:
-            try:
-                options = json.loads(options)
-            except:
-                options = {}
+        cmd = self.params.get("cmd", 'ls .')
+        cwd = self.params.get('cwd', None)
+        env = {}
+        if self.params.get("env", ""):
+            for e in self.params.get("env", "").split(";"):
+                if e:
+                    for k in e.split("="):
+                        env[k[0]] = k[1]
+
         env["FORSUN_TIMESTAMP"] = str(self.ts)
-        log_file_name = options.get("log_file", None)
 
-        def run():
-            log_fp = None
-            if log_file_name:
-                try:
-                    log_fp = open(log_file_name, "wa+")
-                except:pass
-
-            try:
-                sh = "%s %s"  % (cmd, args)
-                p = subprocess.Popen(shlex.split(sh), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True, env=env)
-                while True:
-                    line = p.stdout.readline()
-                    if line and log_fp:
-                        log_fp.write(line)
-                    try:
-                        os.waitpid(p.pid, os.WNOHANG)
-                    except OSError:
-                        line = p.stdout.read()
-                        if line and log_fp:
-                            log_fp.write(line)
-                        break
-                    time.sleep(0.5)
-                logging.info("shell action %s %.2fms", cmd, (time.time() - self.start_time) * 1000)
-            finally:
-                if log_file_name and log_fp:
-                    log_fp.close()
-
-        t = threading.Thread(target=run)
-        t.setDaemon(True)
-        t.start()
+        subprocess.Popen(shlex.split(cmd), shell=True, close_fds=True, cwd = cwd, env=env)
+        logging.debug("shell action %s %.2fms", cmd, (time.time() - self.start_time) * 1000)

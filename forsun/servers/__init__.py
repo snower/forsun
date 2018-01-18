@@ -6,18 +6,16 @@ import logging
 import traceback
 import threading
 from tornado.ioloop import IOLoop
-from torthrift.protocol import TBinaryProtocolFactory
+from thrift.protocol.TBinaryProtocol import TBinaryProtocolAcceleratedFactory
 from torthrift.transport import TIOStreamTransportFactory
 from torthrift.server import TTornadoServer
-from ...server import Server
 from processor.Forsun import Processor
 from handler import Handler
-from .... import config
+from .. import config
 
-class ThriftServer(Server):
-    def __init__(self, *args, **kwargs):
-        super(ThriftServer, self).__init__(*args, **kwargs)
-
+class ThriftServer(object):
+    def __init__(self, forsun):
+        self.forsun = forsun
         self.server = None
         self.thread = None
 
@@ -25,7 +23,7 @@ class ThriftServer(Server):
         handler = Handler(self.forsun)
         processor = Processor(handler)
         tfactory = TIOStreamTransportFactory()
-        protocol = TBinaryProtocolFactory()
+        protocol = TBinaryProtocolAcceleratedFactory()
 
         bind_address = config.get("SERVER_THRIFT_BIND_ADDRESS", "127.0.0.1")
         port = config.get("SERVER_THRIFT_PORT", 5643)

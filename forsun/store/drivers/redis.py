@@ -71,20 +71,14 @@ class RedisStore(Store):
 
     @gen.coroutine
     def add_time_plan(self, plan):
-        res = yield self.db.hset(self.get_key("time:%s" % plan.next_time), plan.key, plan.dupms())
+        res = yield self.db.hset(self.get_key("time:%s" % plan.next_time), plan.key, 0)
         yield self.db.expire(self.get_key("time:%s" % plan.next_time), int(plan.next_time - time.time() + 30))
         raise gen.Return(res)
 
     @gen.coroutine
     def get_time_plan(self, ts):
         res = yield self.db.hgetall(self.get_key("time:%s" % ts))
-        res = res or {}
-        results = {}
-        for key, plan in res.iteritems():
-            try:
-                results[key] = Plan.loads(plan)
-            except:pass
-        raise gen.Return(results)
+        raise gen.Return((res or {}).keys())
 
     @gen.coroutine
     def remove_time_plan(self, plan):

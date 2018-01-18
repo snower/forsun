@@ -4,7 +4,7 @@
 
 import time
 from tornado import gen
-from ....plan import Plan
+from ..plan import Plan
 from .processor.ttypes import ForsunPlan, ForsunPlanError
 
 class Handler(object):
@@ -35,7 +35,7 @@ class Handler(object):
         raise gen.Return(0)
 
     @gen.coroutine
-    def create(self, key, second, minute = -1, hour = -1, day = -1, month = -1, week = -1, action="shell", params=[]):
+    def create(self, key, second, minute = -1, hour = -1, day = -1, month = -1, week = -1, action="shell", params={}):
         try:
             plan = Plan(key, second, minute, hour, day, month, week, is_time_out=False, action=action, params=params, created_time=time.time())
             res = yield self.forsun.create_plan(plan)
@@ -46,7 +46,7 @@ class Handler(object):
         raise gen.Return(self.to_eplan(plan))
 
     @gen.coroutine
-    def createTimeout(self, key, second, minute = -1, hour = -1, day = -1, month = -1, week = -1, count=0, action="shell", params=[]):
+    def createTimeout(self, key, second, minute = -1, hour = -1, day = -1, month = -1, week = -1, count=0, action="shell", params={}):
         try:
             plan = Plan(key, second, minute, hour, day, month, week, is_time_out=True, count=count, action=action, params=params, created_time=time.time())
             res = yield self.forsun.create_plan(plan)

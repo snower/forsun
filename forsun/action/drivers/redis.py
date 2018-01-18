@@ -21,39 +21,27 @@ class RedisAction(Action):
     def init(cls):
         pass
 
-    def get_client(self, host, port, selected_db, pool, max_connections):
-        if pool:
+    def get_client(self, host, port, selected_db, max_connections):
+        key = "%s:%s:%s" % (host, port, selected_db)
+        if key not in self.client_pools:
             pool = self.client_pools.get("%s:%s" % (host, port), None)
             if not pool:
-                pool = tornadoredis.ConnectionPool(max_connections = max_connections, wait_for_available = True,
+                self.__class__.client_pools[key] = tornadoredis.ConnectionPool(max_connections = max_connections, wait_for_available = True,
                                                    host = host, port = port)
-                self.client_pools["%s:%s" % (host, port)] = pool
-            client = tornadoredis.Client(selected_db= selected_db, connection_pool= pool)
-        else:
-            client = tornadoredis.Client(host= host, port= port, selected_db= selected_db)
-        return client
+        return tornadoredis.Client(selected_db= selected_db, connection_pool= self.client_pools[key])
 
     @gen.coroutine
     def execute(self, *args, **kwargs):
         if len(self.params) < 2:
             raise ExecuteActionError("redis params is empty")
 
-        options = self.params[-1] if self.params[-1] else "{}"
-        if options:
-            try:
-                options = json.loads(options)
-            except:
-                options = {}
+        host = self.params.get("host", "127.0.0.1")
+        port = int(self.params.get("port", 6379))
+        selected_db = int(self.params.get("selected_db", 0))
+        max_connections = int(self.params.get("max_connections", 1))
+        command = self.params.get("command")
 
-        host = options.get("host", "127.0.0.1")
-        port = int(options.get("port", 6379))
-        selected_db = int(options.get("selected_db", 0))
-        pool = bool(options.get("pool", False))
-        max_connections = int(options.get("max_connections", 1))
-
-        client = self.get_client(host, port, selected_db, pool, max_connections)
-        cmd = self.params[0].upper()
-        args = tuple(self.params[1:-1])
+        client = self.get_client(host, port, selected_db, max_connections)
         yield gen.Task(client.execute_command, cmd, *args)
         yield gen.Task(client.disconnect)
         logging.info("redis action %s:%s/%s %s %s %.2fms", host, port, selected_db, cmd, args, (time.time() - self.start_time) * 1000)

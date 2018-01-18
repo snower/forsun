@@ -9,6 +9,7 @@ import traceback
 import signal
 from tornado.ioloop import IOLoop
 from tornado import gen
+from servers import ThriftServer
 import store
 import action
 import timer
@@ -18,6 +19,7 @@ import config
 class Forsun(object):
     def __init__(self):
         log.init_config()
+        self.server = ThriftServer(self)
         self.store = store.get_store()
 
         self.init_extensions()
@@ -50,7 +52,7 @@ class Forsun(object):
         @gen.coroutine
         def handler():
             plans = yield self.store.get_time_plan(ts)
-            for key, plan in plans.iteritems():
+            for key in plans:
                 plan = yield self.store.load_plan(key)
                 if plan:
                     yield self.check_plan(ts, plan)

@@ -32,6 +32,7 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
     print('   getCurrent()')
     print('   getTime(i32 timestamp)')
     print('   getKeys(string prefix)')
+    print('  void forsun_call(string key, i32 ts,  params)')
     print('')
     sys.exit(0)
 
@@ -158,6 +159,12 @@ elif cmd == 'getKeys':
         print('getKeys requires 1 args')
         sys.exit(1)
     pp.pprint(client.getKeys(args[0],))
+
+elif cmd == 'forsun_call':
+    if len(args) != 3:
+        print('forsun_call requires 3 args')
+        sys.exit(1)
+    pp.pprint(client.forsun_call(args[0], eval(args[1]), eval(args[2]),))
 
 else:
     print('Unrecognized method %s' % cmd)

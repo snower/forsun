@@ -124,8 +124,8 @@ class ForsunPlan(object):
         (12, TType.I16, 'current_count', None, 0, ),  # 12
         (13, TType.I32, 'last_timeout', None, 0, ),  # 13
         (14, TType.STRING, 'action', 'UTF8', "shell", ),  # 14
-        (15, TType.LIST, 'params', (TType.STRING, 'UTF8', False), [
-        ], ),  # 15
+        (15, TType.MAP, 'params', (TType.STRING, 'UTF8', TType.STRING, 'UTF8', False), {
+        }, ),  # 15
     )
 
     def __init__(self, is_time_out=None, key=None, second=None, minute=thrift_spec[4][4], hour=thrift_spec[5][4], day=thrift_spec[6][4], month=thrift_spec[7][4], week=thrift_spec[8][4], next_time=None, status=thrift_spec[10][4], count=thrift_spec[11][4], current_count=thrift_spec[12][4], last_timeout=thrift_spec[13][4], action=thrift_spec[14][4], params=thrift_spec[15][4],):
@@ -144,8 +144,8 @@ class ForsunPlan(object):
         self.last_timeout = last_timeout
         self.action = action
         if params is self.thrift_spec[15][4]:
-            params = [
-            ]
+            params = {
+            }
         self.params = params
 
     def read(self, iprot):
@@ -228,13 +228,14 @@ class ForsunPlan(object):
                 else:
                     iprot.skip(ftype)
             elif fid == 15:
-                if ftype == TType.LIST:
-                    self.params = []
-                    (_etype3, _size0) = iprot.readListBegin()
+                if ftype == TType.MAP:
+                    self.params = {}
+                    (_ktype1, _vtype2, _size0) = iprot.readMapBegin()
                     for _i4 in range(_size0):
-                        _elem5 = iprot.readString().decode('utf-8') if sys.version_info[0] == 2 else iprot.readString()
-                        self.params.append(_elem5)
-                    iprot.readListEnd()
+                        _key5 = iprot.readString().decode('utf-8') if sys.version_info[0] == 2 else iprot.readString()
+                        _val6 = iprot.readString().decode('utf-8') if sys.version_info[0] == 2 else iprot.readString()
+                        self.params[_key5] = _val6
+                    iprot.readMapEnd()
                 else:
                     iprot.skip(ftype)
             else:
@@ -304,11 +305,12 @@ class ForsunPlan(object):
             oprot.writeString(self.action.encode('utf-8') if sys.version_info[0] == 2 else self.action)
             oprot.writeFieldEnd()
         if self.params is not None:
-            oprot.writeFieldBegin('params', TType.LIST, 15)
-            oprot.writeListBegin(TType.STRING, len(self.params))
-            for iter6 in self.params:
-                oprot.writeString(iter6.encode('utf-8') if sys.version_info[0] == 2 else iter6)
-            oprot.writeListEnd()
+            oprot.writeFieldBegin('params', TType.MAP, 15)
+            oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.params))
+            for kiter7, viter8 in self.params.items():
+                oprot.writeString(kiter7.encode('utf-8') if sys.version_info[0] == 2 else kiter7)
+                oprot.writeString(viter8.encode('utf-8') if sys.version_info[0] == 2 else viter8)
+            oprot.writeMapEnd()
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()

@@ -2,9 +2,7 @@
 # 15/6/8
 # create by: snower
 
-import sys
 import time
-from tornado.concurrent import TracebackFuture
 from tornado import gen
 import tornadoredis
 from ... import config
@@ -47,6 +45,16 @@ class RedisStore(Store):
 
     def get_key(self, key):
         return "%s:%s" % (self.prefix, key)
+
+    @gen.coroutine
+    def set_current(self, current_time):
+        res = yield self.db.set(self.get_key("current:time"), str(current_time), expire=30 * 24 * 60 * 60)
+        raise gen.Return(res)
+
+    @gen.coroutine
+    def get_current(self):
+        res = yield self.db.get(self.get_key("current:time"))
+        raise gen.Return(int(res or 0))
 
     @gen.coroutine
     def set_plan(self, plan):

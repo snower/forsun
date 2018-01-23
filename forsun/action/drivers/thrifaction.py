@@ -3,7 +3,6 @@
 # create by: snower
 
 import time
-import json
 import logging
 from tornado import gen
 from thrift.protocol.TBinaryProtocol import TBinaryProtocolFactory
@@ -43,4 +42,4 @@ class ThriftAction(Action):
 
         client = self.get_client(host, port, max_connections)
         yield client.forsun_call(self.plan.key, int(self.ts), self.params)
-        logging.debug("thrift action %s:%s %.2fms", host, port, (time.time() - self.start_time) * 1000)
+        logging.debug("thrift action execute %s:%s %.2fms", host, port, (time.time() - self.start_time) * 1000)

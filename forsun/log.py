@@ -3,7 +3,7 @@
 # create by: snower
 
 from logging import config as logging_config
-import config as config
+from . import config
 
 def init_config():
     log_file = config.get("LOG_FILE", "/var/log/funsun.log")

@@ -2,12 +2,9 @@
 # 15/6/27
 # create by: snower
 
-import os
 import time
 import subprocess
 import shlex
-import threading
-import json
 import logging
 from tornado import gen
 from ..action import Action, ExecuteActionError
@@ -39,4 +36,4 @@ class ShellAction(Action):
         env["FORSUN_TIMESTAMP"] = str(self.ts)
 
         subprocess.Popen(shlex.split(cmd), shell=True, close_fds=True, cwd = cwd, env=env)
-        logging.debug("shell action %s %.2fms", cmd, (time.time() - self.start_time) * 1000)
+        logging.debug("shell action execute %s %.2fms", cmd, (time.time() - self.start_time) * 1000)

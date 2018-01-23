@@ -9,8 +9,8 @@ from tornado.ioloop import IOLoop
 from thrift.protocol.TBinaryProtocol import TBinaryProtocolAcceleratedFactory
 from torthrift.transport import TIOStreamTransportFactory
 from torthrift.server import TTornadoServer
-from processor.Forsun import Processor
-from handler import Handler
+from .processor.Forsun import Processor
+from .handler import Handler
 from .. import config
 
 class ThriftServer(object):
@@ -25,8 +25,8 @@ class ThriftServer(object):
         tfactory = TIOStreamTransportFactory()
         protocol = TBinaryProtocolAcceleratedFactory()
 
-        bind_address = config.get("SERVER_THRIFT_BIND_ADDRESS", "127.0.0.1")
-        port = config.get("SERVER_THRIFT_PORT", 5643)
+        bind_address = config.get("BIND_ADDRESS", "127.0.0.1")
+        port = config.get("PORT", 6458)
         self.server = TTornadoServer(processor, tfactory, protocol)
         self.server.bind(port, bind_address)
         self.server.start(1)
@@ -39,7 +39,7 @@ class ThriftServer(object):
             try:
                 self.serve()
             except Exception as e:
-                logging.error("thrift server error: %s\n%s", e, traceback.format_exc())
+                logging.error("server error: %s\n%s", e, traceback.format_exc())
 
         self.thread = threading.Thread(target=_)
         self.thread.setDaemon(True)

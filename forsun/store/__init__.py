@@ -3,7 +3,7 @@
 # create by: snower
 
 from .. import config
-from drivers.redis import RedisStore
+from .drivers.redis import RedisStore
 
 class UnknownStoreDriverError(Exception):
     pass

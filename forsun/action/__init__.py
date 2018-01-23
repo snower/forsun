@@ -5,7 +5,6 @@
 import logging
 import traceback
 from tornado import gen
-from drivers import shell, http
 
 __drivers = None
 
@@ -14,11 +13,37 @@ class UnknownActionError(Exception):
 
 def init_drivers():
     global __drivers
-    __drivers = {
-        "shell": shell.ShellAction,
-        "http": http.HttpAction,
-    }
+    __drivers = {}
 
+    try:
+        from .drivers import shellaction
+        __drivers["shell"] = shellaction.ShellAction
+    except Exception as e:
+        logging.error("load shell execute error: %s", e)
+
+    try:
+        from .drivers import httpaction
+        __drivers["http"] = httpaction.HttpAction
+    except Exception as e:
+        logging.error("load http execute error: %s", e)
+
+    try:
+        from .drivers import redisaction
+        __drivers["redis"] = redisaction.RedisAction
+    except Exception as e:
+        logging.error("load redis execute error: %s", e)
+
+    try:
+        from .drivers import thrifaction
+        __drivers["thrift"] = thrifaction.ThriftAction
+    except Exception as e:
+        logging.error("load thrift execute error: %s", e)
+
+    try:
+        from .drivers import beanstalkaction
+        __drivers["beanstalk"] = beanstalkaction.BeanstalkAction
+    except Exception as e:
+        logging.error("load beanstalk execute error: %s", e)
 
 def get_driver(action):
     if __drivers is None:

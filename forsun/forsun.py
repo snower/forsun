@@ -9,18 +9,20 @@ import traceback
 import signal
 from tornado.ioloop import IOLoop
 from tornado import gen
-from servers import ThriftServer
-import store
-import action
-import timer
-import log
-import config
+from .servers import ThriftServer
+from . import store
+from . import action
+from . import timer
+from . import log
+from . import config
+from . import error
 
 class Forsun(object):
     def __init__(self):
         log.init_config()
         self.server = ThriftServer(self)
         self.store = store.get_store()
+        self.current_time = None
 
         self.init_extensions()
 
@@ -44,51 +46,69 @@ class Forsun(object):
         plan.next_time = plan.get_next_time()
         if plan.next_time:
             yield self.store.add_time_plan(plan)
-            yield self.store.store_plan(plan)
+            yield self.store.set_plan(plan)
         else:
             yield self.store.remove_plan(plan)
+            logging.debug("plan finish %s", plan.key)
 
     def time_out(self, ts):
         @gen.coroutine
-        def handler():
+        def handler(ts):
             plans = yield self.store.get_time_plan(ts)
             for key in plans:
-                plan = yield self.store.load_plan(key)
+                plan = yield self.store.get_plan(key)
                 if plan:
                     yield self.check_plan(ts, plan)
-                    yield self.execute_action(ts, plan)
+                    IOLoop.current().add_callback(self.execute_action, ts, plan)
 
-        IOLoop.current().add_callback(handler)
+        @gen.coroutine
+        def check(ts):
+            if self.current_time is None:
+                self.current_time = yield self.store.get_current()
+                while self.current_time > 0 and self.current_time < ts:
+                    yield handler(self.current_time)
+                    self.current_time += 1
+            self.current_time = ts
+            yield self.store.set_current(self.current_time)
+            yield handler(ts)
+
+        IOLoop.current().add_callback(check, ts)
 
     @gen.coroutine
     def create_plan(self, plan):
-        oplan = yield self.store.load_plan(plan.key)
+        oplan = yield self.store.get_plan(plan.key)
         if oplan:
             yield self.store.remove_time_plan(oplan)
             yield self.store.remove_plan(oplan.key)
-        if plan.next_time:
-            yield self.store.add_time_plan(plan)
-            res = yield self.store.add_plan(plan)
-            logging.info("create plan %s", plan)
-            raise gen.Return(res)
-        raise gen.Return(False)
+        if not plan.next_time:
+            raise error.WillNeverArriveTimeError()
+
+        try:
+            action.get_driver(plan.action)
+        except action.UnknownActionError:
+            raise error.UnknownActionError()
+
+        yield self.store.add_time_plan(plan)
+        res = yield self.store.set_plan(plan)
+        if not res:
+            raise error.StorePlanError
 
     @gen.coroutine
     def remove_plan(self, key):
-        oplan = yield self.store.load_plan(key)
-        if oplan:
-            yield self.store.remove_time_plan(oplan)
-            yield self.store.remove_plan(oplan.key)
-            logging.info("remove plan %s", oplan)
-            raise gen.Return(oplan)
-        raise gen.Return(None)
+        oplan = yield self.store.get_plan(key)
+        if not oplan:
+            raise error.NotFoundPlanError()
+
+        yield self.store.remove_time_plan(oplan)
+        yield self.store.remove_plan(oplan.key)
+        raise gen.Return(oplan)
 
     @gen.coroutine
     def get_pan(self, key):
-        plan = yield self.store.load_plan(key)
-        if plan:
-            raise gen.Return(plan)
-        raise gen.Return(None)
+        plan = yield self.store.get_plan(key)
+        if not plan:
+            raise error.NotFoundPlanError()
+        raise gen.Return(plan)
 
     @gen.coroutine
     def get_keys(self, prefix=""):
@@ -101,7 +121,12 @@ class Forsun(object):
 
     @gen.coroutine
     def get_time_plans(self, ts):
-        plans = yield self.store.get_time_plan(ts)
+        keys = yield self.store.get_time_plan(ts)
+        plans = []
+        for key in keys:
+            plan = yield self.store.get_plan(key)
+            if plan:
+                plans.append(plan)
         raise gen.Return(plans)
 
     def serve(self):

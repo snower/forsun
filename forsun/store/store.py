@@ -14,7 +14,11 @@ class Store(object):
         raise NotImplemented
 
     @gen.coroutine
-    def add_plan(self, plan):
+    def set_plan(self, plan):
+        raise NotImplementedError()
+
+    @gen.coroutine
+    def get_plan(self, plan):
         raise NotImplementedError()
 
     @gen.coroutine
@@ -23,15 +27,8 @@ class Store(object):
 
     @gen.coroutine
     def has_plan(self, key):
-        raise NotImplementedError()
-
-    @gen.coroutine
-    def store_plan(self, plan):
-        raise NotImplementedError()
-
-    @gen.coroutine
-    def load_plan(self, key):
-        raise NotImplementedError()
+        plan = yield self.get_plan(key)
+        raise gen.Return(plan)
 
     @gen.coroutine
     def add_time_plan(self, plan):

@@ -18,6 +18,8 @@ DEFAULT_CONFIG = {
     "STORE_REDIS_DB": 0,
     "STORE_REDIS_PREFIX": "forsun",
     "STORE_REDIS_SERVER_ID": "0",
+
+    "ACTION_HTTP_MAX_CLIENTS": 64,
 }
 
 def get(name, default=None):

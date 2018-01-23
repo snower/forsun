@@ -9,20 +9,26 @@ from thrift.protocol.TBinaryProtocol import TBinaryProtocol, TBinaryProtocolFact
 from torthrift.pool import TStreamPool
 from torthrift.client import PoolClient
 from .client.Forsun import Client
+from .client.Forsun import ForsunPlanError
 
 class ThriftClient(object):
     def __init__(self, port=5643, host="127.0.0.1"):
         self.host = host
         self.port = port
+        self.client = None
+        self.transport = None
+
+    def connect(self):
+        self.transport = TSocket(self.host, self.port)
+        self.transport = TBufferedTransport(self.transport)
+        protocol = TBinaryProtocol(self.transport)
+        self.client = Client(protocol)
+        self.transport.open()
 
     def execute(self, name, *args, **kwargs):
-        transport = TSocket(self.host, self.port)
-        transport = TBufferedTransport(transport)
-        protocol = TBinaryProtocol(transport)
-        client = Client(protocol)
-        transport.open()
-        result = getattr(client, name)(*args, **kwargs)
-        transport.close()
+        if self.client is None:
+            self.connect()
+        result = getattr(self.client, name)(*args, **kwargs)
         return result
 
     def create(self, key, second, minute = -1, hour = -1, day = -1, month = -1, week = -1, action="shell", params={}):
@@ -46,6 +52,11 @@ class ThriftClient(object):
     def get_keys(self, prefix=''):
         return self.execute("getKeys", prefix)
 
+    def __del__(self):
+        if self.client:
+            self.transport.close()
+            self.transport = None
+            self.client = None
 
 class TorThriftClient(object):
     def __init__(self, port=5643, host="127.0.0.1", max_stream=4):

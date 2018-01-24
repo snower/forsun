@@ -141,5 +141,7 @@ class Forsun(object):
             self.exit()
 
     def exit(self):
-        self.server.stop()
-        timer.stop()
+        def on_exit():
+            self.server.stop()
+            timer.stop()
+        IOLoop.current().add_callback(on_exit)

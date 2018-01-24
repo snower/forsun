@@ -26,11 +26,19 @@ setup(
     zip_safe=False,
     install_requires=[
         'tornado>=4.1',
-        'tornadoredis',
+        'thrift>=0.10.0',
+        'torthrift>=0.2.3',
+        'tornadoredis>=0.7.0',
         'greenlet>=0.4.2',
     ],
     package_data={
-    '': ['README.md'],
+        '': ['README.md'],
+    },
+    entry_points={
+        'console_scripts': [
+            'forsun = forsun.scripts.forsun:main',
+            'forsund = forsun.scripts.forsund:main',
+        ],
     },
     description= 'A high-level timing service',
     long_description= long_description,

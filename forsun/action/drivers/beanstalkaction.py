@@ -42,4 +42,4 @@ class BeanstalkAction(Action):
 
         client = yield self.get_client(host, port, name)
         yield client.put(body, ttr = 7200)
-        logging.info("beanstalk action execute %s:%s %s %.2fms", host, port, name, (time.time() - self.start_time) * 1000)
+        logging.debug("beanstalk action execute %s:%s %s %.2fms", host, port, name, (time.time() - self.start_time) * 1000)

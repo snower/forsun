@@ -70,14 +70,11 @@ def cmd_set(key, seconds, minutes, hours, days, months, weeks, action, params_st
             break
 
     params = {}
-    for p in params_str.split(";"):
-        p = p.split("=")
-        if len(p) < 2:
-            params[p[0]] = ''
+    for cmd, args in parse_cmd(params_str):
+        if isinstance(cmd, tuple):
+            params[cmd[0]] = cmd[1]
         else:
-            if p[1][0] in ('"', "'"):
-                p[1] = p[1][1:-1]
-            params[p[0]] = p[1]
+            params[cmd] = args
 
     if is_timeout:
         def parse_time(ct, count):

@@ -6,6 +6,7 @@ import time
 import logging
 from tornado import gen
 from thrift.protocol.TBinaryProtocol import TBinaryProtocolFactory
+from thrift.Thrift import TApplicationException
 from torthrift.pool import TStreamPool
 from torthrift.client import PoolClient
 from ...clients.client.Forsun import Client
@@ -41,5 +42,9 @@ class ThriftAction(Action):
         max_connections = int(self.params.get("max_connections", 64))
 
         client = self.get_client(host, port, max_connections)
-        yield client.forsun_call(self.plan.key, int(self.ts), self.params)
-        logging.debug("thrift action execute %s:%s %.2fms", host, port, (time.time() - self.start_time) * 1000)
+        try:
+            yield client.forsun_call(self.plan.key, int(self.ts), self.params)
+        except TApplicationException as e:
+            logging.error("thrift action execute error: %s:%s %s %.2fms", host, port, e, (time.time() - self.start_time) * 1000)
+        else:
+            logging.debug("thrift action execute %s:%s %.2fms", host, port, (time.time() - self.start_time) * 1000)

@@ -17,10 +17,6 @@ class BeanstalkAction(Action):
 
         self.start_time  = time.time()
 
-    @classmethod
-    def init(cls):
-        pass
-
     @gen.coroutine
     def get_client(self, host, port, watch_key):
         key = "%s:%s:%s" % (host, port, watch_key)

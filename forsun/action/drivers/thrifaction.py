@@ -21,10 +21,6 @@ class ThriftAction(Action):
 
         self.start_time  = time.time()
 
-    @gen.coroutine
-    def init(cls):
-        pass
-
     def get_client(self, host, port, max_connections = 0):
         key = "%s:%s" % (host, port)
         if key not in self.client_pools:

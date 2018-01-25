@@ -14,10 +14,6 @@ class Action(object):
         self.action = action
         self.params = params
 
-    @classmethod
-    def init(cls):
-        pass
-
     @gen.coroutine
     def execute(self, *args, **kwargs):
         raise NotImplementedError()

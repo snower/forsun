@@ -16,10 +16,6 @@ class ShellAction(Action):
 
         self.start_time = time.time()
 
-    @classmethod
-    def init(cls):
-        pass
-
     @gen.coroutine
     def execute(self, *args, **kwargs):
         if not self.params:

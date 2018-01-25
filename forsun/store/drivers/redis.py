@@ -158,7 +158,7 @@ class RedisStore(Store):
 
     @gen.coroutine
     def set_plan(self, plan):
-        res = yield self.db.set("".join([self.prefix, ":plan:", plan.key]), plan.dupms(), expire = int(plan.next_time - time.time() + 30))
+        res = yield self.db.set("".join([self.prefix, ":plan:", plan.key]), plan.dumps(), expire = int(plan.next_time - time.time() + 30))
         raise gen.Return(res)
 
     @gen.coroutine

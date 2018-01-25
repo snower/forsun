@@ -17,6 +17,8 @@ DEFAULT_CONFIG = {
 
     "STORE_DRIVER": "mem",
 
+    "STORE_MEM_STORE_FILE": "/tmp/forsun.session",
+
     "STORE_REDIS_HOST": "127.0.0.1",
     "STORE_REDIS_PORT": 6379,
     "STORE_REDIS_DB": 0,

@@ -85,7 +85,7 @@ class Plan(object):
                     current_time += self.step_time
             return int(time.mktime(current_time.timetuple()))
 
-    def dupms(self):
+    def dumps(self):
         return msgpack.dumps({
             "key": self.key,
             "second": self.second,

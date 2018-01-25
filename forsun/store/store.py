@@ -6,6 +6,14 @@ from tornado import gen
 
 class Store(object):
     @gen.coroutine
+    def init(self):
+        pass
+
+    @gen.coroutine
+    def uninit(self):
+        pass
+
+    @gen.coroutine
     def set_current(self, current_time):
         raise NotImplemented
 

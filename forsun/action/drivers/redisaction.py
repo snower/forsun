@@ -98,10 +98,6 @@ class RedisAction(Action):
 
         self.start_time  = time.time()
 
-    @classmethod
-    def init(cls):
-        pass
-
     def get_client(self, host, port, selected_db, max_connections):
         key = "%s:%s:%s" % (host, port, selected_db)
         if key not in self.client_pools:

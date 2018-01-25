@@ -15,9 +15,9 @@ class HttpAction(Action):
 
         self.client = AsyncHTTPClient()
         self.start_time = time.time()
+        self.configed = False
 
-    @classmethod
-    def init(cls):
+    def config(self):
         import forsun
         AsyncHTTPClient.configure(None,
                                   max_clients=config.get("ACTION_HTTP_MAX_CLIENTS", 64),
@@ -26,6 +26,9 @@ class HttpAction(Action):
 
     @gen.coroutine
     def execute(self, *args, **kwargs):
+        if not self.configed:
+            self.config()
+
         if not self.params:
             raise ExecuteActionError("url is empty")
 

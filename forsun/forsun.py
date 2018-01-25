@@ -27,6 +27,14 @@ class Forsun(object):
 
         self.init_extensions()
 
+    @gen.coroutine
+    def init(self):
+        yield self.store.init()
+
+    @gen.coroutine
+    def uninit(self):
+        yield self.store.uninit()
+
     def init_extensions(self):
         extensions_path = config.get("EXTENSIONS_PATH", "")
         for ext in extensions_path.split(";"):
@@ -151,6 +159,7 @@ class Forsun(object):
         signal.signal(signal.SIGTERM, lambda signum,frame: self.exit())
         try:
             action.init_drivers()
+            self.ioloop.add_callback(self.init)
             self.ioloop.add_callback(logging.info, "forsun ready")
             self.server.start()
             timer.start(self.time_out)
@@ -159,7 +168,9 @@ class Forsun(object):
             self.exit()
 
     def exit(self):
+        @gen.coroutine
         def on_exit():
+            yield self.uninit()
             self.server.stop()
             timer.stop()
             logging.info("stoping current time %s", timer.current())

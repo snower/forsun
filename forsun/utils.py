@@ -2,6 +2,27 @@
 # 15/7/4
 # create by: snower
 
+import sys
+
+if sys.version_info[0] >= 3:
+    is_py3 = True
+    string_type = (str, bytes)
+    unicode_type = str
+    number_type = int
+    def ensure_bytes(s):
+        if isinstance(s, str):
+            return s.encode("utf-8")
+        return bytes(s)
+else:
+    is_py3 = False
+    string_type = (str, unicode)
+    unicode_type = unicode
+    number_type = (int, long)
+    def ensure_bytes(s):
+        if isinstance(s, unicode):
+            return s.encode("utf-8")
+        return str(s)
+
 class ExtensionsNotFound(Exception): pass
 
 def load_extensions(name):

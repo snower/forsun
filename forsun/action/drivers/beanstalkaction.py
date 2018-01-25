@@ -7,6 +7,7 @@ import logging
 from tornado import gen
 import beanstalkt
 from ..action import Action
+from ...utils import unicode_type
 
 class BeanstalkAction(Action):
     client_pools = {}
@@ -41,5 +42,5 @@ class BeanstalkAction(Action):
         body = self.params.get("body", '')
 
         client = yield self.get_client(host, port, name)
-        yield client.put(body.encode("utf-8") if isinstance(body, unicode) else body, ttr = 7200)
+        yield client.put(body.encode("utf-8") if isinstance(body, unicode_type) else body, ttr = 7200)
         logging.debug("beanstalk action execute %s:%s %s %.2fms", host, port, name, (time.time() - self.start_time) * 1000)

@@ -11,6 +11,7 @@ import tornadis
 from ... import config
 from ...plan import Plan
 from ..store import Store
+from ...utils import unicode_type, is_py3
 
 class RedisClient(object):
     def __init__(self, host, port, selected_db = 0, max_connections = 4, client_timeout = 7200, bulk_size = 5):
@@ -33,7 +34,7 @@ class RedisClient(object):
     def execute(self):
         if self._commands:
             with (yield self.pool.connected_client()) as client:
-                if isinstance(client, tornadis.ClientError):
+                if isinstance(client, Exception):
                     logging.error("redis store connect error: %s", client)
                     raise gen.Return(None)
 
@@ -46,7 +47,7 @@ class RedisClient(object):
                         self.current_connections += 1
                         if len(commands) == 1:
                             reply = yield client.call(*commands[0][0], **commands[0][1])
-                            if isinstance(reply, tornadis.TornadisException):
+                            if isinstance(reply, Exception):
                                 commands[0][2].set_exception(reply)
                             else:
                                 commands[0][2].set_result(reply)
@@ -55,13 +56,16 @@ class RedisClient(object):
                             for command in commands:
                                 pipeline.stack_call(*command[0])
                             replys = yield client.call(pipeline)
-                            if isinstance(replys, tornadis.TornadisException):
+                            if isinstance(replys, Exception):
                                 for command in commands:
                                     command[2].set_exception(replys)
                             else:
                                 if isinstance(replys, (list, tuple)):
                                     for i in range(len(replys)):
-                                        commands[i][2].set_result(replys[i])
+                                        if isinstance(replys[i], Exception):
+                                            commands[i][2].set_exception(replys[i])
+                                        else:
+                                            commands[i][2].set_result(replys[i])
                                 else:
                                     for command in commands:
                                         command[2].set_result(replys)
@@ -169,30 +173,37 @@ class RedisStore(Store):
             raise gen.Return(None)
         try:
             res = Plan.loads(res)
-        except:
+        except Exception as e:
+            logging.error("redis store load plan error: %s %s", key, e)
             res = None
         raise gen.Return(res)
 
     @gen.coroutine
     def add_time_plan(self, plan):
-        key = self.prefix + (":time:%s" % plan.next_time)
+        key = "".join([self.prefix, ":time:", str(plan.next_time)])
         res = yield self.db.hset(key, plan.key, '0')
         yield self.db.expire(key, int(plan.next_time - time.time() + 30))
         raise gen.Return(res)
 
     @gen.coroutine
     def get_time_plan(self, ts):
-        res = yield self.db.hgetall(self.prefix + (":time:%s" % ts))
+        res = yield self.db.hgetall("".join([self.prefix, ":time:", str(ts)]))
         if not res:
             raise gen.Return([])
-        raise gen.Return([res[i] for i in range(0, len(res), 2)])
+        if is_py3:
+            raise gen.Return([str(res[i], "utf-8") for i in range(0, len(res), 2)])
+        else:
+            raise gen.Return([res[i] for i in range(0, len(res), 2)])
 
     @gen.coroutine
     def remove_time_plan(self, plan):
-        res = yield self.db.hdel(self.prefix + (":time:%s" % plan.next_time), plan.key)
+        res = yield self.db.hdel("".join([self.prefix, ":time:", str(plan.next_time)]), plan.key)
         raise gen.Return(res)
 
     @gen.coroutine
-    def get_plan_keys(self, prefix=""):
+    def get_plan_keys(self, prefix = ""):
         res = yield self.db.keys("".join([self.prefix, ":", prefix, ":*"]))
-        raise gen.Return(res)
+        if is_py3:
+            raise gen.Return([str(r, "utf-8") for r in res])
+        else:
+            raise gen.Return(res)

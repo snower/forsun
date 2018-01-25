@@ -3,6 +3,7 @@
 # create by: snower
 
 import os
+from .utils import string_type, number_type
 
 __config = {}
 
@@ -47,14 +48,14 @@ def update(config):
     return __config
 
 update(DEFAULT_CONFIG)
-for key, value in DEFAULT_CONFIG.iteritems():
+for key, value in DEFAULT_CONFIG.items():
     env_value = os.environ.get(key)
     if env_value is not None:
         try:
-            if isinstance(value, (int, long)):
+            if isinstance(value, number_type):
                 set(key, int(env_value))
             elif isinstance(value, float):
                 set(key, float(env_value))
-            elif isinstance(value, basestring):
+            elif isinstance(value, string_type):
                 set(key, str(env_value))
         except:pass

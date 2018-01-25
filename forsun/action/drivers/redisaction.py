@@ -33,7 +33,7 @@ class RedisClient(object):
     def execute(self):
         if self._commands:
             with (yield self.pool.connected_client()) as client:
-                if isinstance(client, tornadis.ClientError):
+                if isinstance(client, Exception):
                     logging.error("redis action connect error: %s", client)
                     commands, self._commands = self._commands, []
                     for command in commands:
@@ -49,7 +49,7 @@ class RedisClient(object):
                         self.current_connections += 1
                         if len(commands) == 1:
                             reply = yield client.call(*commands[0][0], **commands[0][1])
-                            if isinstance(reply, tornadis.TornadisException):
+                            if isinstance(reply, Exception):
                                 commands[0][2].set_exception(reply)
                             else:
                                 commands[0][2].set_result(reply)
@@ -58,13 +58,16 @@ class RedisClient(object):
                             for command in commands:
                                 pipeline.stack_call(*command[0])
                             replys = yield client.call(pipeline)
-                            if isinstance(replys, tornadis.TornadisException):
+                            if isinstance(replys, Exception):
                                 for command in commands:
                                     command[2].set_exception(replys)
                             else:
                                 if isinstance(replys, (list, tuple)):
                                     for i in range(len(replys)):
-                                        commands[i][2].set_result(replys[i])
+                                        if isinstance(replys[i], Exception):
+                                            commands[i][2].set_exception(replys[i])
+                                        else:
+                                            commands[i][2].set_result(replys[i])
                                 else:
                                     for command in commands:
                                         command[2].set_result(replys)

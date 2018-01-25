@@ -5,7 +5,10 @@
 import time
 import signal
 import logging
-from Queue import Queue, Empty
+try:
+    from Queue import Queue, Empty
+except ImportError:
+    from queue import Queue, Empty
 
 __time_out_callback = None
 __time_out_queues = Queue()

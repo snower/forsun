@@ -107,7 +107,7 @@ class Plan(object):
 
     @classmethod
     def loads(cls, data):
-        data = msgpack.loads(data)
+        data = msgpack.loads(data, encoding = "utf-8")
         return cls(**data)
 
     def __str__(self):

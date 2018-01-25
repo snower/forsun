@@ -3,7 +3,6 @@
 # create by: snower
 
 import logging
-import traceback
 import threading
 from tornado.ioloop import IOLoop
 from thrift.protocol.TBinaryProtocol import TBinaryProtocolAcceleratedFactory
@@ -11,6 +10,7 @@ from torthrift.transport import TIOStreamTransportFactory
 from torthrift.server import TTornadoServer
 from .processor.Forsun import Processor
 from .handler import Handler
+from .. import timer
 from .. import config
 
 class ThriftServer(object):
@@ -39,7 +39,8 @@ class ThriftServer(object):
             try:
                 self.serve()
             except Exception as e:
-                logging.error("server error: %s\n%s", e, traceback.format_exc())
+                logging.error("server error: %s", e)
+                timer.stop()
 
         self.thread = threading.Thread(target=_)
         self.thread.setDaemon(True)

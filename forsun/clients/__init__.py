@@ -12,7 +12,7 @@ from .client.Forsun import Client
 from .client.Forsun import ForsunPlanError
 
 class ThriftClient(object):
-    def __init__(self, port=5643, host="127.0.0.1"):
+    def __init__(self, port=6458, host="127.0.0.1"):
         self.host = host
         self.port = port
         self.client = None
@@ -59,7 +59,7 @@ class ThriftClient(object):
             self.client = None
 
 class TorThriftClient(object):
-    def __init__(self, port=5643, host="127.0.0.1", max_stream=4):
+    def __init__(self, port=6458, host="127.0.0.1", max_stream=4):
         self.host = host
         self.port = port
         self.max_stream = max_stream

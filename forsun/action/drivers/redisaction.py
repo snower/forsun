@@ -4,10 +4,88 @@
 
 import time
 import logging
+from tornado.ioloop import IOLoop
 from tornado import gen
-import tornadoredis
+from tornado.concurrent import Future
+import tornadis
 from ..action import Action, ExecuteActionError
 from ...utils import parse_cmd
+from ... import config
+
+class RedisClient(object):
+    def __init__(self, host, port, selected_db = 0, max_connections = 4, client_timeout = 7200, bulk_size = 5):
+        self.ioloop = IOLoop.current()
+        self.max_connections = max_connections
+        self.current_connections = 0
+        self.bulk_size = bulk_size
+        self.pool = tornadis.ClientPool(
+            max_size = -1,
+            client_timeout = client_timeout,
+            autoclose = True,
+            host= host,
+            port = port,
+            db = selected_db,
+        )
+        self._commands = []
+        self.executing = False
+
+    @gen.coroutine
+    def execute(self):
+        if self._commands:
+            with (yield self.pool.connected_client()) as client:
+                if isinstance(client, tornadis.ClientError):
+                    logging.error("redis action connect error: %s", client)
+                    commands, self._commands = self._commands, []
+                    for command in commands:
+                        command[2].set_exception(client)
+                    raise gen.Return(None)
+
+                if self._commands:
+                    commands, self._commands = self._commands[:self.bulk_size], self._commands[self.bulk_size:]
+                    if self._commands:
+                        self.ioloop.add_callback(self.execute)
+
+                    try:
+                        self.current_connections += 1
+                        if len(commands) == 1:
+                            reply = yield client.call(*commands[0][0], **commands[0][1])
+                            if isinstance(reply, tornadis.TornadisException):
+                                commands[0][2].set_exception(reply)
+                            else:
+                                commands[0][2].set_result(reply)
+                        else:
+                            pipeline = tornadis.Pipeline()
+                            for command in commands:
+                                pipeline.stack_call(*command[0])
+                            replys = yield client.call(pipeline)
+                            if isinstance(replys, tornadis.TornadisException):
+                                for command in commands:
+                                    command[2].set_exception(replys)
+                            else:
+                                if isinstance(replys, (list, tuple)):
+                                    for i in range(len(replys)):
+                                        commands[i][2].set_result(replys[i])
+                                else:
+                                    for command in commands:
+                                        command[2].set_result(replys)
+                    except Exception as e:
+                        for command in commands:
+                            if not command[2].done():
+                                command[2].set_exception(e)
+                    finally:
+                        self.current_connections -= 1
+                        if self._commands:
+                            self.ioloop.add_callback(self.execute)
+                        else:
+                            self.executing = False
+
+    def execute_command(self, *args, **kwargs):
+        future = Future()
+        self._commands.append((args, kwargs, future))
+        if not self.executing and self.current_connections < self.max_connections:
+            self.ioloop.add_callback(self.execute)
+            self.executing = True
+        return future
 
 class RedisAction(Action):
     client_pools = {}
@@ -24,8 +102,11 @@ class RedisAction(Action):
     def get_client(self, host, port, selected_db, max_connections):
         key = "%s:%s:%s" % (host, port, selected_db)
         if key not in self.client_pools:
-            self.__class__.client_pools[key] = tornadoredis.ConnectionPool(host = host, port = port, max_connections = max_connections, wait_for_available = True)
-        return tornadoredis.Client(selected_db= selected_db, connection_pool= self.client_pools[key])
+            client_timeout = int(config.get("ACTION_REDIS_CLIENT_TIMEOUT", 8))
+            bulk_size = int(config.get("ACTION_REDIS_BULK_SIZE", 8))
+            self.__class__.client_pools[key] = RedisClient(host = host, port = port, selected_db = selected_db, max_connections = max_connections,
+                                                           client_timeout = client_timeout, bulk_size = bulk_size)
+        return self.__class__.client_pools[key]
 
     @gen.coroutine
     def execute(self, *args, **kwargs):
@@ -35,19 +116,15 @@ class RedisAction(Action):
         host = self.params.get("host", "127.0.0.1")
         port = int(self.params.get("port", 6379))
         selected_db = int(self.params.get("selected_db", 0))
-        max_connections = int(self.params.get("max_connections", 1))
+        max_connections = int(self.params.get("max_connections", config.get("ACTION_REDIS_MAX_CONNECTIONS", 8)))
         command = self.params.get("command")
         cmds = parse_cmd(command, True)
 
         if cmds:
             client = self.get_client(host, port, selected_db, max_connections)
-            if len(cmds) > 1:
-                with client.pipeline() as pipeline:
-                    for cmd, args in cmds:
-                        client.execute_command(cmd, *args)
-                    yield gen.Task(pipeline.execute)
-            else:
-                cmd, args = cmds[0]
-                yield gen.Task(client.execute_command, cmd, *args)
-            yield gen.Task(client.disconnect)
+            futures = []
+            for cmd, args in cmds:
+                future = client.execute_command(cmd, *args)
+                futures.append(future)
+            yield futures
         logging.debug("redis action execute %s:%s/%s %s %.2fms", host, port, selected_db, cmds, (time.time() - self.start_time) * 1000)

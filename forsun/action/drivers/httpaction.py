@@ -44,8 +44,8 @@ class HttpAction(Action):
         auth_password = self.params.get('auth_password', None)
         auth_mode = self.params.get('auth_mode', None)
         user_agent = self.params.get("user_agent", None)
-        connect_timeout = self.params.get("connect_timeout", None)
-        request_timeout = self.params.get("request_timeout", None)
+        connect_timeout = self.params.get("connect_timeout", config.get("ACTION_HTTP_CONNECT_TIMEOUT", 5))
+        request_timeout = self.params.get("request_timeout", config.get("ACTION_HTTP_REQUEST_TIMEOUT", 120))
 
         headers["X-FORSUN-TIMESTAMP"] = str(self.ts)
         request = HTTPRequest(url, method, body=body, headers=headers,

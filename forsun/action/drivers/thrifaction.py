@@ -11,6 +11,7 @@ from torthrift.pool import TStreamPool
 from torthrift.client import PoolClient
 from ...clients.client.Forsun import Client
 from ..action import Action, ExecuteActionError
+from ... import config
 
 class ThriftAction(Action):
     client_pools = {}
@@ -39,7 +40,7 @@ class ThriftAction(Action):
 
         host = self.params.get("host", "127.0.0.1")
         port = int(self.params.get("port", 5643))
-        max_connections = int(self.params.get("max_connections", 64))
+        max_connections = int(self.params.get("max_connections", config.get("ACTION_THRIFT_MAX_CONNECTIONS", 64)))
 
         client = self.get_client(host, port, max_connections)
         try:

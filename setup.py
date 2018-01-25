@@ -28,8 +28,9 @@ setup(
         'tornado>=4.1',
         'thrift>=0.10.0',
         'torthrift>=0.2.3',
-        'tornadoredis>=0.7.0',
+        'tornadis>=0.8.0',
         'greenlet>=0.4.2',
+        'msgpack>=0.5.1',
     ],
     package_data={
         '': ['README.md'],

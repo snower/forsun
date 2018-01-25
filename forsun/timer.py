@@ -4,6 +4,7 @@
 
 import time
 import signal
+import logging
 from Queue import Queue, Empty
 
 __time_out_callback = None
@@ -22,12 +23,14 @@ def stop():
     global __time_out_callback, __is_stop
     __time_out_callback = None
     __is_stop = True
+    logging.info("timer stoping")
 
 def loop():
     global __current_time, __time_out_callback
 
     signal.signal(signal.SIGALRM, handler)
     signal.setitimer(signal.ITIMER_REAL, 1, 1)
+    logging.info("timer ready")
     while not __is_stop:
         try:
             __current_time = __time_out_queues.get(True, 0.5)

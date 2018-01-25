@@ -20,6 +20,7 @@ from . import error
 class Forsun(object):
     def __init__(self):
         log.init_config()
+        self.ioloop = IOLoop.current()
         self.server = ThriftServer(self)
         self.store = store.get_store()
         self.current_time = None
@@ -48,31 +49,36 @@ class Forsun(object):
             yield self.store.add_time_plan(plan)
             yield self.store.set_plan(plan)
         else:
-            yield self.store.remove_plan(plan)
+            yield self.store.remove_plan(plan.key)
             logging.debug("plan finish %s", plan.key)
 
+    @gen.coroutine
+    def handler_plan(self, ts, key):
+        plan = yield self.store.get_plan(key)
+        if plan:
+            yield self.check_plan(ts, plan)
+            self.ioloop.add_callback(self.execute_action, ts, plan)
+
+    @gen.coroutine
+    def handler(self, ts):
+        plans = yield self.store.get_time_plan(ts)
+        for key in plans:
+            self.ioloop.add_callback(self.handler_plan, ts, key)
+
+    @gen.coroutine
+    def check(self, ts):
+        if self.current_time is None:
+            self.current_time = yield self.store.get_current()
+            logging.info("start by last time %s current time %s", self.current_time, timer.current())
+            while self.current_time > 0 and self.current_time < ts:
+                yield self.handler(self.current_time)
+                self.current_time += 1
+        self.current_time = ts
+        yield self.store.set_current(self.current_time)
+        yield self.handler(ts)
+
     def time_out(self, ts):
-        @gen.coroutine
-        def handler(ts):
-            plans = yield self.store.get_time_plan(ts)
-            for key in plans:
-                plan = yield self.store.get_plan(key)
-                if plan:
-                    yield self.check_plan(ts, plan)
-                    IOLoop.current().add_callback(self.execute_action, ts, plan)
-
-        @gen.coroutine
-        def check(ts):
-            if self.current_time is None:
-                self.current_time = yield self.store.get_current()
-                while self.current_time > 0 and self.current_time < ts:
-                    yield handler(self.current_time)
-                    self.current_time += 1
-            self.current_time = ts
-            yield self.store.set_current(self.current_time)
-            yield handler(ts)
-
-        IOLoop.current().add_callback(check, ts)
+        self.ioloop.add_callback(self.check, ts)
 
     @gen.coroutine
     def create_plan(self, plan):
@@ -134,6 +140,8 @@ class Forsun(object):
         signal.signal(signal.SIGINT, lambda signum,frame: self.exit())
         signal.signal(signal.SIGTERM, lambda signum,frame: self.exit())
         try:
+            action.init_drivers()
+            self.ioloop.add_callback(logging.info, "forsun ready")
             self.server.start()
             timer.start(self.time_out)
             timer.loop()
@@ -144,4 +152,5 @@ class Forsun(object):
         def on_exit():
             self.server.stop()
             timer.stop()
-        IOLoop.current().add_callback(on_exit)
+            logging.info("stoping current time %s", timer.current())
+        self.ioloop.add_callback(on_exit)

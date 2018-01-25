@@ -18,30 +18,35 @@ def init_drivers():
     try:
         from .drivers import shellaction
         __drivers["shell"] = shellaction.ShellAction
+        logging.info("action register shell %s", shellaction.ShellAction)
     except Exception as e:
         logging.error("load shell execute error: %s", e)
 
     try:
         from .drivers import httpaction
         __drivers["http"] = httpaction.HttpAction
+        logging.info("action register http %s", httpaction.HttpAction)
     except Exception as e:
         logging.error("load http execute error: %s", e)
 
     try:
         from .drivers import redisaction
         __drivers["redis"] = redisaction.RedisAction
+        logging.info("action register redis %s", redisaction.RedisAction)
     except Exception as e:
         logging.error("load redis execute error: %s", e)
 
     try:
         from .drivers import thrifaction
         __drivers["thrift"] = thrifaction.ThriftAction
+        logging.info("action register thrift %s", thrifaction.ThriftAction)
     except Exception as e:
         logging.error("load thrift execute error: %s", e)
 
     try:
         from .drivers import beanstalkaction
         __drivers["beanstalk"] = beanstalkaction.BeanstalkAction
+        logging.info("action register beanstalk %s", beanstalkaction.BeanstalkAction)
     except Exception as e:
         logging.error("load beanstalk execute error: %s", e)
 

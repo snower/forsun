@@ -47,3 +47,4 @@ class ThriftServer(object):
 
     def stop(self):
         IOLoop.current().add_callback(lambda :IOLoop.current().stop())
+        logging.info("server stoping")

@@ -3,72 +3,168 @@
 # create by: snower
 
 import time
+import logging
+from tornado.ioloop import IOLoop
 from tornado import gen
-import tornadoredis
+from tornado.concurrent import Future
+import tornadis
 from ... import config
 from ...plan import Plan
 from ..store import Store
 
 class RedisClient(object):
-    def __init__(self, host, port, selected_db=0, max_connections=4):
-        self.selected_db = selected_db
-        self.pool = tornadoredis.ConnectionPool(
-            max_connections = max_connections,
-            wait_for_available = True,
+    def __init__(self, host, port, selected_db = 0, max_connections = 4, client_timeout = 7200, bulk_size = 5):
+        self.ioloop = IOLoop.current()
+        self.max_connections = max_connections
+        self.current_connections = 0
+        self.bulk_size = bulk_size
+        self.pool = tornadis.ClientPool(
+            max_size = -1,
+            client_timeout = client_timeout,
+            autoclose = True,
             host= host,
             port = port,
+            db = selected_db,
         )
+        self._commands = []
+        self.executing = False
 
-    def __getattr__(self, name):
-        @gen.coroutine
-        def _(*args, **kwargs):
-            db = tornadoredis.Client(connection_pool=self.pool, selected_db=self.selected_db)
-            method = getattr(db, name)
-            res = yield gen.Task(method, *args, **kwargs)
-            yield gen.Task(db.disconnect)
-            raise gen.Return(res)
-        setattr(self, name, _)
-        return _
+    @gen.coroutine
+    def execute(self):
+        if self._commands:
+            with (yield self.pool.connected_client()) as client:
+                if isinstance(client, tornadis.ClientError):
+                    logging.error("redis store connect error: %s", client)
+                    raise gen.Return(None)
+
+                if self._commands:
+                    commands, self._commands = self._commands[:self.bulk_size], self._commands[self.bulk_size:]
+                    if self._commands:
+                        self.ioloop.add_callback(self.execute)
+
+                    try:
+                        self.current_connections += 1
+                        if len(commands) == 1:
+                            reply = yield client.call(*commands[0][0], **commands[0][1])
+                            if isinstance(reply, tornadis.TornadisException):
+                                commands[0][2].set_exception(reply)
+                            else:
+                                commands[0][2].set_result(reply)
+                        else:
+                            pipeline = tornadis.Pipeline()
+                            for command in commands:
+                                pipeline.stack_call(*command[0])
+                            replys = yield client.call(pipeline)
+                            if isinstance(replys, tornadis.TornadisException):
+                                for command in commands:
+                                    command[2].set_exception(replys)
+                            else:
+                                if isinstance(replys, (list, tuple)):
+                                    for i in range(len(replys)):
+                                        commands[i][2].set_result(replys[i])
+                                else:
+                                    for command in commands:
+                                        command[2].set_result(replys)
+                    except Exception as e:
+                        for command in commands:
+                            if not command[2].done():
+                                command[2].set_exception(e)
+                    finally:
+                        self.current_connections -= 1
+                        if self._commands:
+                            self.ioloop.add_callback(self.execute)
+                        else:
+                            self.executing = False
+
+    def execute_command(self, *args, **kwargs):
+        future = Future()
+        self._commands.append((args, kwargs, future))
+        if not self.executing and self.current_connections < self.max_connections:
+            self.ioloop.add_callback(self.execute)
+            self.executing = True
+        return future
+
+    def select(self, db):
+        return self.execute_command("SELECT", db)
+
+    def get(self, key, **kwargs):
+        return self.execute_command('GET', key, **kwargs)
+
+    def set(self, key, value, expire=None, pexpire=None,
+            only_if_not_exists=False, only_if_exists=False, **kwargs):
+        args = []
+
+        if expire is not None:
+            args.extend(("EX", expire))
+        if pexpire is not None:
+            args.extend(("PX", pexpire))
+        if only_if_not_exists:
+            args.append("NX")
+        if only_if_exists:
+            args.append("XX")
+
+        return self.execute_command('SET', key, value, *args, **kwargs)
+
+    def keys(self, key, **kwargs):
+        return self.execute_command('KEYS', key, **kwargs)
+
+    def expire(self, key, ttl, **kwargs):
+        return self.execute_command('EXPIRE', key, ttl, **kwargs)
+
+    def delete(self, *keys, **kwargs):
+        return self.execute_command('DEL', *keys, **kwargs)
+
+    def hgetall(self, key, **kwargs):
+        return self.execute_command('HGETALL', key, **kwargs)
+
+    def hset(self, key, field, value, **kwargs):
+        return self.execute_command('HSET', key, field, value, **kwargs)
+
+    def hdel(self, key, *fields, **kwargs):
+        return self.execute_command('HDEL', key, *fields, **kwargs)
 
 class RedisStore(Store):
     def __init__(self, *args, **kwargs):
         super(RedisStore, self).__init__(*args, **kwargs)
 
-        self.db = RedisClient(
-            host = config.get("STORE_REDIS_HOST", "127.0.0.1"),
-            port = config.get("STORE_REDIS_PORT", 6379),
-            selected_db = config.get("STORE_REDIS_HOST", 1),
-        )
-        self.prefix = config.get("STORE_REDIS_PREFIX", "forsun")
-        if config.get("STORE_REDIS_SERVER_ID"):
-            self.prefix += ":" + config.get("STORE_REDIS_SERVER_ID")
+        host = config.get("STORE_REDIS_HOST", "127.0.0.1")
+        port = config.get("STORE_REDIS_PORT", 6379)
+        selected_db = config.get("STORE_REDIS_DB", 0)
 
-    def get_key(self, key):
-        return "%s:%s" % (self.prefix, key)
+        self.db = RedisClient(
+            host = host,
+            port = port,
+            selected_db = selected_db,
+            max_connections = int(config.get("STORE_REDIS_MAX_CONNECTIONS", 8)),
+            client_timeout = int(config.get("STORE_REDIS_CLIENT_TIMEOUT", 7200)),
+            bulk_size = int(config.get("STORE_REDIS_BULK_SIZE", 5)),
+        )
+        self.prefix = "%s:%s" % (config.get("STORE_REDIS_PREFIX", "forsun"), config.get("STORE_REDIS_SERVER_ID", 0))
+        logging.info("use redis store %s:%s/%s", host, port, selected_db)
 
     @gen.coroutine
     def set_current(self, current_time):
-        res = yield self.db.set(self.get_key("current:time"), str(current_time), expire=30 * 24 * 60 * 60)
+        res = yield self.db.set(self.prefix + ":current:time", str(current_time), expire=30 * 24 * 60 * 60)
         raise gen.Return(res)
 
     @gen.coroutine
     def get_current(self):
-        res = yield self.db.get(self.get_key("current:time"))
+        res = yield self.db.get(self.prefix + ":current:time")
         raise gen.Return(int(res or 0))
 
     @gen.coroutine
     def set_plan(self, plan):
-        res = yield self.db.set(self.get_key("plan:%s" % plan.key), plan.dupms(), expire = int(plan.next_time - time.time() + 30))
+        res = yield self.db.set("".join([self.prefix, ":plan:", plan.key]), plan.dupms(), expire = int(plan.next_time - time.time() + 30))
         raise gen.Return(res)
 
     @gen.coroutine
     def remove_plan(self, key):
-        res = yield self.db.delete(self.get_key("plan:%s" % key))
+        res = yield self.db.delete("".join([self.prefix, ":plan:", key]))
         raise gen.Return(res)
 
     @gen.coroutine
     def get_plan(self, key):
-        res = yield self.db.get(self.get_key("plan:%s" % key))
+        res = yield self.db.get("".join([self.prefix, ":plan:", key]))
         if not res:
             raise gen.Return(None)
         try:
@@ -79,21 +175,24 @@ class RedisStore(Store):
 
     @gen.coroutine
     def add_time_plan(self, plan):
-        res = yield self.db.hset(self.get_key("time:%s" % plan.next_time), plan.key, 0)
-        yield self.db.expire(self.get_key("time:%s" % plan.next_time), int(plan.next_time - time.time() + 30))
+        key = self.prefix + (":time:%s" % plan.next_time)
+        res = yield self.db.hset(key, plan.key, '0')
+        yield self.db.expire(key, int(plan.next_time - time.time() + 30))
         raise gen.Return(res)
 
     @gen.coroutine
     def get_time_plan(self, ts):
-        res = yield self.db.hgetall(self.get_key("time:%s" % ts))
-        raise gen.Return((res or {}).keys())
+        res = yield self.db.hgetall(self.prefix + (":time:%s" % ts))
+        if not res:
+            raise gen.Return([])
+        raise gen.Return([res[i] for i in range(0, len(res), 2)])
 
     @gen.coroutine
     def remove_time_plan(self, plan):
-        res = yield self.db.hdel(self.get_key("time:%s" % plan.next_time), plan.key)
+        res = yield self.db.hdel(self.prefix + (":time:%s" % plan.next_time), plan.key)
         raise gen.Return(res)
 
     @gen.coroutine
     def get_plan_keys(self, prefix=""):
-        res = yield self.db.keys(self.get_key("%s:*" % prefix))
+        res = yield self.db.keys("".join([self.prefix, ":", prefix, ":*"]))
         raise gen.Return(res)

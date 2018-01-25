@@ -4,7 +4,7 @@
 
 import time
 import datetime
-import json
+import msgpack
 
 class Plan(object):
     def __init__(self, key, second=0, minute = -1, hour = -1, day = -1, month = -1, week = -1, status = 0, count=0, is_time_out=False, next_time=None, current_count=0, last_timeout=0, created_time=0, action="event", params="{}"):
@@ -86,7 +86,7 @@ class Plan(object):
             return int(time.mktime(current_time.timetuple()))
 
     def dupms(self):
-        return json.dumps({
+        return msgpack.dumps({
             "key": self.key,
             "second": self.second,
             "minute": self.minute,
@@ -107,7 +107,7 @@ class Plan(object):
 
     @classmethod
     def loads(cls, data):
-        data = json.loads(data)
+        data = msgpack.loads(data)
         return cls(**data)
 
     def __str__(self):

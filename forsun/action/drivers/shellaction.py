@@ -8,6 +8,7 @@ import shlex
 import logging
 from tornado import gen
 from ..action import Action, ExecuteActionError
+from ... import config
 
 class ShellAction(Action):
     def __init__(self, *args, **kwargs):
@@ -25,7 +26,7 @@ class ShellAction(Action):
             raise ExecuteActionError("cmd is empty")
 
         cmd = self.params.get("cmd", 'ls .')
-        cwd = self.params.get('cwd', None)
+        cwd = self.params.get('cwd', config.get("ACTION_SHELL_CWD", '/tmp'))
         env = {}
         if self.params.get("env", ""):
             for e in self.params.get("env", "").split(";"):

@@ -43,5 +43,9 @@ class Store(object):
         raise NotImplementedError()
 
     @gen.coroutine
+    def delete_time_plan(self, ts):
+        raise NotImplementedError()
+
+    @gen.coroutine
     def get_plan_keys(self, prefix=""):
         raise NotImplementedError()

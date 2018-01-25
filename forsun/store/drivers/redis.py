@@ -201,6 +201,11 @@ class RedisStore(Store):
         raise gen.Return(res)
 
     @gen.coroutine
+    def delete_time_plan(self, ts):
+        res = yield self.db.delete("".join([self.prefix, ":time:", str(ts)]))
+        raise gen.Return(res)
+
+    @gen.coroutine
     def get_plan_keys(self, prefix = ""):
         res = yield self.db.keys("".join([self.prefix, ":", prefix, ":*"]))
         if is_py3:

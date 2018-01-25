@@ -15,7 +15,7 @@ parser.add_argument('--port', dest='bind_port', default=6458, type=int, help='bi
 parser.add_argument('--demon', dest='demon', default=False, type=bool, help='run demon mode')
 parser.add_argument('--log', dest='log_file', default='/var/log/forsun.log', type=str, help='log file')
 parser.add_argument('--log-level', dest='log_level', default='INFO', type=str, help='log level (defaul: INFO)')
-parser.add_argument('--driver', dest='driver', default='redis', type=str, help='store driver (defaul: redis)')
+parser.add_argument('--driver', dest='driver', default='mem', type=str, help='store driver (defaul: mem)')
 parser.add_argument('--driver-redis-host', dest='driver_redis_host', default='127.0.0.1', type=str, help='store reids driver host (defaul: 127.0.0.1)')
 parser.add_argument('--driver-redis-port', dest='driver_redis_port', default=6379, type=int, help='store reids driver port (defaul: 6379)')
 parser.add_argument('--driver-redis-db', dest='driver_redis_db', default=0, type=int, help='store reids driver db (defaul: 0)')

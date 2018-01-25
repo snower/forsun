@@ -68,6 +68,7 @@ class Forsun(object):
             plans = yield self.store.get_time_plan(ts)
             for key in plans:
                 self.ioloop.add_callback(self.handler_plan, ts, key)
+            yield self.store.delete_time_plan(ts)
         except Exception as e:
             logging.error("handler ts error: %s %s", ts, e)
 

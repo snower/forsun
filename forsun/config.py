@@ -15,7 +15,8 @@ DEFAULT_CONFIG = {
     "BIND_ADDRESS": "0.0.0.0",
     "PORT": 6458,
 
-    "STORE_DRIVER": "redis",
+    "STORE_DRIVER": "mem",
+
     "STORE_REDIS_HOST": "127.0.0.1",
     "STORE_REDIS_PORT": 6379,
     "STORE_REDIS_DB": 0,

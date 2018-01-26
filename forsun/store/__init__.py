@@ -4,6 +4,7 @@
 
 import logging
 from .. import config
+from .store import Store
 
 class UnknownStoreDriverError(Exception):
     pass
@@ -24,6 +25,13 @@ def init_stores():
         logging.info("store register redis %s", RedisStore)
     except Exception as e:
         logging.error("store load redis error: %s", e)
+
+def register_store(name, cls):
+    if issubclass(cls, Store):
+        __stores[name] = cls
+        logging.info("store register %s %s", name, cls)
+        return True
+    return False
 
 def get_store(*args, **kwargs):
     driver = config.get("STORE_DRIVER", "mem")

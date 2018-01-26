@@ -36,6 +36,9 @@ DEFAULT_CONFIG = {
     "ACTION_REDIS_CLIENT_TIMEOUT": 7200,
     "ACTION_REDIS_BULK_SIZE": 5,
     "ACTION_THRIFT_MAX_CONNECTIONS": 64,
+
+    "EXTENSION_PATH": "",
+    "EXTENSIONS": [],
 }
 
 def get(name, default=None):

@@ -5,6 +5,7 @@
 import logging
 import traceback
 from tornado import gen
+from .action import Action
 
 __drivers = None
 
@@ -49,6 +50,13 @@ def init_drivers():
         logging.info("action register beanstalk %s", beanstalkaction.BeanstalkAction)
     except Exception as e:
         logging.error("load beanstalk execute error: %s", e)
+
+def register_action(name, cls):
+    if issubclass(cls, Action):
+        __drivers[name] = cls
+        logging.info("action register %s %s", name, cls)
+        return True
+    return False
 
 def get_driver(action):
     if __drivers is None:

@@ -14,6 +14,7 @@ from . import store
 from . import action
 from . import timer
 from . import log
+from .extension import ExtensionManager
 from . import config
 from . import error
 
@@ -22,6 +23,8 @@ class Forsun(object):
         log.init_config()
         self.ioloop = IOLoop.current()
 
+        store.init_stores()
+        action.init_drivers()
         self.init_extensions()
 
         self.server = ThriftServer(self)
@@ -30,17 +33,32 @@ class Forsun(object):
 
     @gen.coroutine
     def init(self):
+        ExtensionManager.init()
         yield self.store.init()
 
     @gen.coroutine
     def uninit(self):
         yield self.store.uninit()
+        ExtensionManager.uninit()
 
     def init_extensions(self):
-        extensions_path = config.get("EXTENSIONS_PATH", "")
-        for ext in extensions_path.split(";"):
-            if ext and os.path.exists(ext):
-                sys.path.append(os.path.abspath(ext))
+        extension_path = config.get("EXTENSION_PATH", [])
+        if extension_path:
+            sys.path.append(extension_path)
+            logging.info("register extension path %s", extension_path)
+
+        extensions = config.get("EXTENSIONS", [])
+        for extension in extensions:
+            try:
+                extension_module, extension_class = "".join(extension.split(".")[:-1]), extension.split(".")[-1]
+                extension_module = __import__(extension_module, globals(), [], [extension_class])
+                extension_class = getattr(extension_module, extension_class)
+                ExtensionManager.add_extension(extension_class)
+                logging.info("load extension %s %s", extension, extension_class)
+            except Exception as e:
+                logging.error("load extension error: %s %s", extension, e)
+
+        ExtensionManager.register()
 
     @gen.coroutine
     def execute_action(self, ts, plan):
@@ -159,7 +177,6 @@ class Forsun(object):
         signal.signal(signal.SIGINT, lambda signum,frame: self.exit())
         signal.signal(signal.SIGTERM, lambda signum,frame: self.exit())
         try:
-            action.init_drivers()
             self.ioloop.add_callback(self.init)
             self.ioloop.add_callback(logging.info, "forsun ready")
             self.server.start()

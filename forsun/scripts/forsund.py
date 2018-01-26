@@ -15,13 +15,15 @@ parser.add_argument('--port', dest='bind_port', default=6458, type=int, help='bi
 parser.add_argument('--demon', dest='demon', default=False, type=bool, help='run demon mode')
 parser.add_argument('--log', dest='log_file', default='/var/log/forsun.log', type=str, help='log file')
 parser.add_argument('--log-level', dest='log_level', default='INFO', type=str, help='log level (defaul: INFO)')
-parser.add_argument('--driver', dest='driver', default='mem', type=str, help='store driver (defaul: mem)')
+parser.add_argument('--driver', dest='driver', default='mem', type=str, help='store driver mem or redis (defaul: mem)')
 parser.add_argument('--driver-mem-store-file', dest='store_mem_store_file', default='/tmp/forsun.session', type=str, help='store mem driver store file (defaul: /tmp/forsun.session)')
 parser.add_argument('--driver-redis-host', dest='driver_redis_host', default='127.0.0.1', type=str, help='store reids driver host (defaul: 127.0.0.1)')
 parser.add_argument('--driver-redis-port', dest='driver_redis_port', default=6379, type=int, help='store reids driver port (defaul: 6379)')
 parser.add_argument('--driver-redis-db', dest='driver_redis_db', default=0, type=int, help='store reids driver db (defaul: 0)')
 parser.add_argument('--driver-redis-prefix', dest='driver_redis_prefix', default='forsun', type=str, help='store reids driver key prefix (defaul: forsun)')
 parser.add_argument('--driver-redis-server-id', dest='driver_redis_server_id', default=0, type=int, help='store reids driver server id (defaul: 0)')
+parser.add_argument('--extension-path', dest='extension_path', default='', type=str, help='extension path')
+parser.add_argument('--extension', dest='extensions', default=[], action="append", type=str, help='extension name')
 
 def main():
     args = parser.parse_args()
@@ -38,6 +40,9 @@ def main():
     config.set("STORE_REDIS_DB", args.driver_redis_db)
     config.set("STORE_REDIS_PREFIX", args.driver_redis_prefix)
     config.set("STORE_REDIS_SERVER_ID", args.driver_redis_server_id)
+
+    config.set("EXTENSION_PATH", args.extension_path)
+    config.set("EXTENSIONS", args.extensions)
 
     forsun = Forsun()
     if args.demon:

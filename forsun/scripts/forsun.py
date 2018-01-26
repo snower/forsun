@@ -36,7 +36,11 @@ def cmd_exit(*args):
 def cmd_ls(prefix = None, *args):
     keys = client.get_keys(prefix or '')
     for key in keys:
-        print(key)
+        try:
+            plan = client.get(key)
+            print(key, plan)
+        except ForsunPlanError:
+            pass
 
 def cmd_current(*args):
     plans = client.get_current()
@@ -151,7 +155,7 @@ def main():
 
     while True:
         try:
-            command = raw_input("forsun> ")
+            command = input("forsun> ")
             cmd, params = parse_cmd(command)
             if cmd not in CMDS:
                 print('Unknown cmd ', cmd)

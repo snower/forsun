@@ -2,7 +2,6 @@
 # 15/6/8
 # create by: snower
 
-import time
 import logging
 from tornado.ioloop import IOLoop
 from tornado import gen
@@ -11,7 +10,8 @@ import tornadis
 from ... import config
 from ...plan import Plan
 from ..store import Store
-from ...utils import unicode_type, is_py3
+from ...utils import is_py3
+from ... import timer
 
 class RedisClient(object):
     def __init__(self, host, port, selected_db = 0, max_connections = 4, client_timeout = 7200, bulk_size = 5):
@@ -148,7 +148,7 @@ class RedisStore(Store):
 
     @gen.coroutine
     def set_current(self, current_time):
-        res = yield self.db.set(self.prefix + ":current:time", str(current_time), expire=30 * 24 * 60 * 60)
+        res = yield self.db.set(self.prefix + ":current:time", str(current_time), expire = 2592000)
         raise gen.Return(res)
 
     @gen.coroutine
@@ -158,7 +158,7 @@ class RedisStore(Store):
 
     @gen.coroutine
     def set_plan(self, plan):
-        res = yield self.db.set("".join([self.prefix, ":plan:", plan.key]), plan.dumps(), expire = int(plan.next_time - time.time() + 30))
+        res = yield self.db.set("".join([self.prefix, ":plan:", plan.key]), plan.dumps(), expire = plan.next_time - timer.current() + 604800)
         raise gen.Return(res)
 
     @gen.coroutine
@@ -182,7 +182,7 @@ class RedisStore(Store):
     def add_time_plan(self, plan):
         key = "".join([self.prefix, ":time:", str(plan.next_time)])
         res = yield self.db.hset(key, plan.key, '0')
-        yield self.db.expire(key, int(plan.next_time - time.time() + 30))
+        yield self.db.expire(key, plan.next_time - timer.current() + 604800)
         raise gen.Return(res)
 
     @gen.coroutine
@@ -207,8 +207,9 @@ class RedisStore(Store):
 
     @gen.coroutine
     def get_plan_keys(self, prefix = ""):
-        res = yield self.db.keys("".join([self.prefix, ":", prefix, ":*"]))
+        prefix_len = len(self.prefix + ":plan:")
+        res = yield self.db.keys("".join([self.prefix, ":plan:", prefix, "*"]))
         if is_py3:
-            raise gen.Return([str(r, "utf-8") for r in res])
+            raise gen.Return([str(r, "utf-8")[prefix_len: ] for r in res])
         else:
-            raise gen.Return(res)
+            raise gen.Return([r[prefix_len: ] for r in res])

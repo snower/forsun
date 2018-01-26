@@ -21,11 +21,12 @@ class Forsun(object):
     def __init__(self):
         log.init_config()
         self.ioloop = IOLoop.current()
+
+        self.init_extensions()
+
         self.server = ThriftServer(self)
         self.store = store.get_store()
         self.current_time = None
-
-        self.init_extensions()
 
     @gen.coroutine
     def init(self):

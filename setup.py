@@ -23,7 +23,7 @@ setup(
     packages=find_packages(),
     zip_safe=False,
     install_requires=[
-        'tornado>=4.1',
+        'tornado>=4.5',
         'thrift==0.11.0',
         'torthrift>=0.2.3',
         'tornadis>=0.8.0',

@@ -5,9 +5,7 @@
 import os
 from setuptools import find_packages, setup
 
-
-# Dynamically calculate the version based on django.VERSION.
-from forsun.version import version
+version = "0.0.1"
 
 if os.path.exists("README.md"):
     with open("README.md") as fp:

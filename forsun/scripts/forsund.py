@@ -46,7 +46,8 @@ def main():
 
     forsun = Forsun()
     if args.demon:
-        multiprocessing.Process(target = forsun.serve, name=" ".join(sys.argv))
+        p = multiprocessing.Process(target = forsun.serve, name=" ".join(sys.argv))
+        p.start()
     else:
         forsun.serve()
 

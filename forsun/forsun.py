@@ -178,7 +178,7 @@ class Forsun(object):
         signal.signal(signal.SIGTERM, lambda signum,frame: self.exit())
         try:
             self.ioloop.add_callback(self.init)
-            self.ioloop.add_callback(logging.info, "forsun ready")
+            self.ioloop.add_callback(logging.info, "forsun ready %s", os.getpid())
             self.server.start()
             timer.start(self.time_out)
             timer.loop()

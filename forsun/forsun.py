@@ -191,5 +191,6 @@ class Forsun(object):
             yield self.uninit()
             self.server.stop()
             timer.stop()
-            logging.info("stoping current time %s", timer.current())
+            logging.info("stoped current time %s", timer.current())
         self.ioloop.add_callback(on_exit)
+        logging.info("stoping")

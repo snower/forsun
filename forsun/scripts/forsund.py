@@ -4,10 +4,12 @@
 
 from __future__ import absolute_import, division, print_function, with_statement
 
+import os
 import sys
 import argparse
 import multiprocessing
-from ..forsun import Forsun, config
+import atexit
+from ..forsun import config
 
 parser = argparse.ArgumentParser(description='High-performance timing scheduling service')
 parser.add_argument('--bind', dest='bind_host', default="0.0.0.0", help='bind host (default: 0.0.0.0)')
@@ -24,6 +26,21 @@ parser.add_argument('--driver-redis-prefix', dest='driver_redis_prefix', default
 parser.add_argument('--driver-redis-server-id', dest='driver_redis_server_id', default=0, type=int, help='store reids driver server id (defaul: 0)')
 parser.add_argument('--extension-path', dest='extension_path', default='', type=str, help='extension path')
 parser.add_argument('--extension', dest='extensions', default=[], action="append", type=str, help='extension name')
+
+def serve(demon = True):
+    if demon:
+        sys.stdin.close()
+        sys.stdin = open(os.devnull)
+
+        sys.stdout.close()
+        sys.stdout = open(os.devnull)
+
+        sys.stderr.close()
+        sys.stderr = open(os.devnull)
+
+    from ..forsun import Forsun
+    forsun = Forsun()
+    forsun.serve()
 
 def main():
     args = parser.parse_args()
@@ -44,12 +61,13 @@ def main():
     config.set("EXTENSION_PATH", args.extension_path)
     config.set("EXTENSIONS", args.extensions)
 
-    forsun = Forsun()
+
     if args.demon:
-        p = multiprocessing.Process(target = forsun.serve, name=" ".join(sys.argv))
+        p = multiprocessing.Process(target = serve, name=" ".join(sys.argv))
         p.start()
+        atexit._clear()
     else:
-        forsun.serve()
+        serve(False)
 
 if __name__ == "__main__":
     main()

@@ -12,6 +12,11 @@
 
 ```
 pip install forsun
+
+or 
+
+git clone https://github.com/snower/forsun.git
+python setup.py install
 ```
 
 # Start Server

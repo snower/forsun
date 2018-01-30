@@ -26,7 +26,7 @@ setup(
     zip_safe=False,
     install_requires=[
         'tornado>=4.1',
-        'thrift==0.10.0',
+        'thrift==0.11.0',
         'torthrift>=0.2.3',
         'tornadis>=0.8.0',
         'greenlet>=0.4.2',

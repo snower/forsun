@@ -12,7 +12,7 @@ from ..forsun import Forsun, config
 parser = argparse.ArgumentParser(description='High-performance timing scheduling service')
 parser.add_argument('--bind', dest='bind_host', default="0.0.0.0", help='bind host (default: 0.0.0.0)')
 parser.add_argument('--port', dest='bind_port', default=6458, type=int, help='bind port (default: 6458)')
-parser.add_argument('--demon', dest='demon', default=False, type=bool, help='run demon mode')
+parser.add_argument('--demon', dest='demon', nargs='?', const=True, default=False, type=bool, help='run demon mode')
 parser.add_argument('--log', dest='log_file', default='/var/log/forsun.log', type=str, help='log file')
 parser.add_argument('--log-level', dest='log_level', default='INFO', type=str, help='log level (defaul: INFO)')
 parser.add_argument('--driver', dest='driver', default='mem', type=str, help='store driver mem or redis (defaul: mem)')

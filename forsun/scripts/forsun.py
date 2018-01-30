@@ -8,6 +8,7 @@ import time
 import datetime
 import argparse
 from thrift.transport.TTransport import TTransportException
+from ..version import version
 from ..clients import ThriftClient, ForsunPlanError
 from ..utils import parse_cmd, string_type, unicode_type
 
@@ -55,7 +56,6 @@ def cmd_exit(*args):
     exit(0)
 
 def cmd_version(*args):
-    from forsun import version
     print(version)
 
 def cmd_ls(prefix = None, *args):
@@ -178,7 +178,7 @@ def main():
                     exit(1)
         exit(0)
 
-    print('Welcome to the Forsun')
+    print('Welcome to the Forsun', version)
     print("Type 'help' for help")
     print('')
 

@@ -9,7 +9,7 @@ import datetime
 import argparse
 from thrift.transport.TTransport import TTransportException
 from ..clients import ThriftClient, ForsunPlanError
-from ..utils import parse_cmd
+from ..utils import parse_cmd, string_type, unicode_type
 
 parser = argparse.ArgumentParser(description='High-performance timing scheduling service')
 parser.add_argument('--host', dest='host', default="127.0.0.1", help='host (default: 127.0.0.1)')
@@ -18,6 +18,27 @@ parser.add_argument('--exe', dest='execute', default='', type=str, help='execute
 parser.add_argument('cmd', default='', type=str, nargs=argparse.OPTIONAL, help='execute cmd (default: )')
 
 client = None
+
+def print_plan(plan):
+    times = []
+    if plan.is_time_out:
+        times.append("*" if plan.second == 0 else "*/%s/%s" % (plan.second, plan.count))
+        times.append("*" if plan.minute == 0 else "*/%s/%s" % (plan.minute, plan.count))
+        times.append("*" if plan.hour == 0 else "*/%s/%s" % (plan.hour, plan.count))
+        times.append("*" if plan.day == 0 else "*/%s/%s" % (plan.day, plan.count))
+        times.append("*" if plan.month == 0 else "*/%s/%s" % (plan.month, plan.count))
+        times.append("*" if plan.week == -1 else "*/%s/%s" % (plan.week, plan.count))
+    else:
+        times.append("*" if plan.second == -1 else str(plan.second))
+        times.append("*" if plan.minute == -1 else str(plan.minute))
+        times.append("*" if plan.hour == -1 else str(plan.hour))
+        times.append("*" if plan.day == -1 else str(plan.day))
+        times.append("*" if plan.month == -1 else str(plan.month))
+        times.append("*" if plan.week == -1 else str(plan.week))
+
+    params = ";".join(["%s=%s" % (key, ("'%s'" % value) if isinstance(value, string_type) else value) for key, value in plan.params.items()])
+
+    print(datetime.datetime.fromtimestamp(plan.next_time).strftime("%Y-%m-%d %H:%M:%S"), plan.key, " ".join(times), plan.action, '"' + params + '"')
 
 def cmd_help(*args):
     print("help - show help doc")
@@ -33,19 +54,23 @@ def cmd_help(*args):
 def cmd_exit(*args):
     exit(0)
 
+def cmd_version(*args):
+    from forsun import version
+    print(version)
+
 def cmd_ls(prefix = None, *args):
     keys = client.get_keys(prefix or '')
     for key in keys:
         try:
             plan = client.get(key)
-            print(key, plan)
+            print_plan(plan)
         except ForsunPlanError:
             pass
 
 def cmd_current(*args):
     plans = client.get_current()
     for plan in plans:
-        print(plan)
+        print_plan(plan)
 
 def cmd_time(ts = None, *args):
     if not ts:
@@ -53,14 +78,14 @@ def cmd_time(ts = None, *args):
     elif ts.isdigit():
         ts = int(ts)
     else:
-        ts = time.mktime(datetime.datetime.strptime(ts, "%Y-%m-%d %H:%M:%S").timetuple())
+        ts = int(time.mktime(datetime.datetime.strptime(ts, "%Y-%m-%d %H:%M:%S").timetuple()))
     plans = client.get_time(ts)
     for plan in plans:
-        print(plan)
+        print_plan(plan)
 
 def cmd_get(key, *args):
     plan = client.get(key)
-    print(plan)
+    print_plan(plan)
 
 def cmd_rm(key, *args):
     client.remove(key)
@@ -98,16 +123,16 @@ def cmd_set(key, seconds, minutes, hours, days, months, weeks, action, params_st
 
         plan = client.create_timeout(key, seconds, minutes, hours, days, months, weeks or -1, count, action, params)
     else:
-        seconds = int(seconds) if seconds == "*" else -1
-        minutes = int(minutes) if minutes == "*" else -1
-        hours = int(hours) if hours == "*" else -1
-        days = int(days) if days == "*" else -1
-        months = int(months) if months == "*" else -1
-        weeks = int(weeks) if weeks == "*" else -1
+        seconds = int(seconds) if seconds != "*" else -1
+        minutes = int(minutes) if minutes != "*" else -1
+        hours = int(hours) if hours != "*" else -1
+        days = int(days) if days != "*" else -1
+        months = int(months) if months != "*" else -1
+        weeks = int(weeks) if weeks != "*" else -1
 
         plan = client.create(key, seconds, minutes, hours, days, months, weeks, action, params)
 
-    print(plan)
+    print_plan(plan)
 
 def main():
     global client
@@ -124,6 +149,7 @@ def main():
     CMDS = {
         'help': cmd_help,
         'exit': cmd_exit,
+        'version': cmd_version,
 
         'ls': cmd_ls,
         'current': cmd_current,
@@ -144,6 +170,9 @@ def main():
                     CMDS[cmd](*params)
                 except KeyboardInterrupt:
                     exit(0)
+                except ForsunPlanError as e:
+                    print('cmd ForsunPlanError: ', e.code, e.message)
+                    exit(1)
                 except Exception as e:
                     print('cmd error: ', e)
                     exit(1)
@@ -156,17 +185,20 @@ def main():
     while True:
         try:
             command = input("forsun> ")
-            cmd, params = parse_cmd(command)
-            if cmd not in CMDS:
-                print('Unknown cmd ', cmd)
-            else:
-                try:
-                    CMDS[cmd](*params)
-                    print('')
-                except KeyboardInterrupt:
-                    break
-                except Exception as e:
-                    print('cmd error: ', e)
+            cmds = parse_cmd(command)
+            for cmd, params in cmds:
+                if cmd not in CMDS:
+                    print('Unknown cmd ', cmd)
+                else:
+                    try:
+                        CMDS[cmd](*params)
+                        print('')
+                    except KeyboardInterrupt:
+                        break
+                    except ForsunPlanError as e:
+                        print('cmd ForsunPlanError: ', e.code, e.message)
+                    except Exception as e:
+                        print('cmd error: ', e)
         except KeyboardInterrupt:
             break
 

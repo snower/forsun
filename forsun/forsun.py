@@ -6,7 +6,6 @@ import os
 import sys
 import logging
 import traceback
-import signal
 from tornado.ioloop import IOLoop
 from tornado import gen
 from .servers import ThriftServer
@@ -173,14 +172,11 @@ class Forsun(object):
         raise gen.Return(plans)
 
     def serve(self):
-        signal.signal(signal.SIGHUP, lambda signum,frame: self.exit())
-        signal.signal(signal.SIGINT, lambda signum,frame: self.exit())
-        signal.signal(signal.SIGTERM, lambda signum,frame: self.exit())
         try:
             self.ioloop.add_callback(self.init)
             self.ioloop.add_callback(logging.info, "forsun ready %s", os.getpid())
             self.server.start()
-            timer.start(self.time_out)
+            timer.start(self.time_out, self.exit)
             timer.loop()
         except KeyboardInterrupt:
             self.exit()

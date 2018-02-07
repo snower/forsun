@@ -7,8 +7,8 @@ from setuptools import find_packages, setup
 
 version = "0.0.1"
 
-if os.path.exists("README.md"):
-    with open("README.md") as fp:
+if os.path.exists("README.rst"):
+    with open("README.rst") as fp:
         long_description = fp.read()
 else:
     long_description = ''
@@ -43,6 +43,6 @@ setup(
             'forsund = forsun.scripts.forsund:main',
         ],
     },
-    description= 'A high-level timing service',
+    description= 'High-performance high-precision timing scheduling service',
     long_description= long_description,
 )

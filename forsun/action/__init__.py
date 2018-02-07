@@ -51,6 +51,13 @@ def init_drivers():
     except Exception as e:
         logging.error("load beanstalk execute error: %s", e)
 
+    try:
+        from .drivers import mysqlaction
+        __drivers["mysql"] = mysqlaction.MysqlAction
+        logging.info("action register mysql %s", mysqlaction.MysqlAction)
+    except Exception as e:
+        logging.error("load mysql execute error: %s", e)
+
 def register_action(name, cls):
     if issubclass(cls, Action):
         __drivers[name] = cls

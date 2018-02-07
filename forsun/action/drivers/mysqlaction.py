@@ -36,7 +36,7 @@ class MysqlAction(Action):
             raise ExecuteActionError("redis params is empty")
 
         host = self.params.get("host", "127.0.0.1")
-        port = int(self.params.get("port", 6379))
+        port = int(self.params.get("port", 3306))
         db = self.params.get("db", 'mysql')
         user = self.params.get("user", config.get("ACTION_MYSQL_USER", 'root'))
         passwd = self.params.get("passwd", config.get("ACTION_MYSQL_PASSWD", ''))
@@ -50,7 +50,9 @@ class MysqlAction(Action):
                 yield tx.execute(sql)
             except Exception as e:
                 yield tx.rollback()
-                raise e
+                logging.error("mysql action execute error %s %s:%s/%s '%s' '%s' %.2fms", user, host, port, db, sql, e,
+                              (time.time() - self.start_time) * 1000)
             else:
                 yield tx.commit()
-        logging.debug("mysql action execute %s %s:%s/%s %s %.2fms", user, host, port, db, sql, (time.time() - self.start_time) * 1000)
+                logging.debug("mysql action execute %s %s:%s/%s '%s' %.2fms", user, host, port, db, sql,
+                              (time.time() - self.start_time) * 1000)

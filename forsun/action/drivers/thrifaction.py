@@ -42,6 +42,6 @@ class ThriftAction(Action):
         try:
             yield client.forsun_call(self.plan.key, int(self.ts), self.params)
         except TApplicationException as e:
-            logging.error("thrift action execute error: %s:%s %s %.2fms", host, port, e, (time.time() - self.start_time) * 1000)
+            logging.error("thrift action execute error: %s:%s '%s' %.2fms", host, port, e, (time.time() - self.start_time) * 1000)
         else:
             logging.debug("thrift action execute %s:%s %.2fms", host, port, (time.time() - self.start_time) * 1000)

@@ -30,6 +30,10 @@ setup(
         'greenlet>=0.4.2',
         'msgpack>=0.5.1',
     ],
+    extras_require = {
+        'mysql': ['tormysql>=0.3.6'],
+        'beanstalk': ['beanstalkt>=0.7.0'],
+    },
     package_data={
         '': ['README.md'],
     },

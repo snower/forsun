@@ -4,7 +4,7 @@
 
 # About
 
-使用Linux系统定时器产生精确到秒的定时，长时间运行无误差，支持内存存储和redis持久化存储，轻松支持千万级定时任务调度，支持shell、http、reids、thrift、beanstalk五种到时触发回调方式，并可以通过扩展轻松自定义回调器。
+使用Linux系统定时器产生精确到秒的定时，长时间运行无误差，支持内存存储和redis持久化存储，轻松支持千万级定时任务调度，支持shell、http、reids、thrift、beanstalk、mysql六种到时触发回调方式，并可以通过扩展轻松自定义回调器。
 
 使用crontab相似命令创建管理任务，同时Thrift接口创建和取消任务，支持大量语言接入。
 
@@ -86,6 +86,7 @@ forsun "set shell */5/1 * * * * * shell 'cmd=ls"
 forsun "set beanstalk */5/1 * * * * * beanstalk 'host=10.4.14.14;name=etask;body={}'"
 forsun "set thrift */5/1 * * * * * thrift 'host=10.4.14.14;port=4220"
 forsun "set http */5/1 * * * * * http 'url=\'http://www.baidu.com\''"
+forsun "set mysql */5/1 * * * * * mysql 'host=172.16.0.2;user=root;passwd=123456;db=test;sql=\'update test set created_at=now() where id=1\'"
 
 #time模式（定点时间，每天16:32:00运行）
 forsun "set redis 0 32 16 * * * redis 'host=172.16.0.2;command=\'SET b 1 EX 300\'"
@@ -93,6 +94,7 @@ forsun "set shell 0 32 16 * * * shell 'cmd=ls"
 forsun "set beanstalk 0 32 16 * * * beanstalk 'host=10.4.14.14;name=etask;body={}'"
 forsun "set thrift 0 32 16 * * * thrift 'host=10.4.14.14;port=4220"
 forsun "set http 0 32 16 * * * http 'url=\'http://www.baidu.com\''"
+forsun "set mysql 32 16 * * * mysql 'host=172.16.0.2;user=root;passwd=123456;db=test;sql=\'update test set created_at=now() where id=1\'"
 ```
 
 # License

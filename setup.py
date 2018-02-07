@@ -5,7 +5,7 @@
 import os
 from setuptools import find_packages, setup
 
-version = "0.0.1"
+version = "0.0.2"
 
 if os.path.exists("README.rst"):
     with open("README.rst") as fp:
@@ -20,7 +20,7 @@ setup(
     author='snower',
     author_email='sujian199@gmail.com',
     license='MIT',
-    packages=find_packages('./forsun'),
+    packages=find_packages(),
     zip_safe=False,
     install_requires=[
         'tornado>=4.5',

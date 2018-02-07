@@ -20,7 +20,7 @@ setup(
     author='snower',
     author_email='sujian199@gmail.com',
     license='MIT',
-    packages=find_packages(),
+    packages=find_packages('./forsun'),
     zip_safe=False,
     install_requires=[
         'tornado>=4.5',

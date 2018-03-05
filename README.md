@@ -136,6 +136,81 @@ service Forsun{
 }
 ```
 
+# Docker
+
+使用docker运行，注意：使用docker运行时，shell和宿主机在同一环境，执行shell时将在docker中运行。
+
+```
+git clone https://github.com/snower/forsun
+cd forsun
+
+#创建保存redis持久化数据文件夹和日志文件夹，可自定义
+mkdir /var/lib/forsun
+mkdir /var/log/forsun
+
+#build
+docker build -t forsun:0.0.2 .
+#start
+docker run -d -p 6458:6458 -v /var/lib/forsun:/var/lib/forsun -v /var/log/forsun:/var/log/forsun forsun:0.0.2
+```
+
+#Action
+
+回调器参数为create和createTimeout最后一个参数params key和value的map。
+
+## shell参数
+
+* cmd shell命令
+* cwd 工作目录
+* env 环境变量，以;分割＝号连接的字符串，如：a=1;b=c
+
+## http参数
+
+* url 请求接口URL字符串
+* method 请求方法，只支持get,post,put,delete,head五种方法
+* body 请求体字符串
+* header_ 以header_为前缀的key都会放到请求header中
+* auth_username 校验用户名
+* auth_password 校验密码
+* auth_mode 校验方法
+* user_agent 请求User－Agent
+* connect_timeout 连接超时时间，默认5秒
+* request_timeout 请求超时时间，默认60秒
+
+## redis参数
+
+* host redis服务器地址，默认127.0.0.1
+* port redis服务器端口，默认6379
+* selected_db redis运行命令db
+* max_connections 连接redis服务器最大连接数，第一次连接时的命令中的值有效
+* command 需要执行的命令，多条命令以;分割
+
+## mysql参数
+
+* host mysql服务器地址，默认127.0.0.1
+* port mysql服务器端口，默认3306
+* db mysql运行命令db，默认mysql
+* user mysql登陆用户名，默认root
+* passwd mysql登陆密码，默认空字符串
+* max_connections 连接redis服务器最大连接数，第一次连接时的命令中的值有效
+* sql 需要执行的sql
+
+## beanstalk参数
+
+* host beanstalk服务器地址，默认127.0.0.1
+* port beanstalk服务器端口，默认11300
+* name 队列名称，默认default
+* body 推送的消息体
+
+## thrift参数
+
+回调thrift接口时，固定请求void forsun_call(1:string key, 2:i32 ts, 3:map<string, string> params)该函数，第三个params参数即为任务定义时的params值。
+
+* host thrift服务器地址，默认127.0.0.1
+* port thrift服务器端口，默认5643
+* max_connections 连接thrift服务器最大连接数，第一次连接时的命令中的值有效
+
+
 # License
 
 forsun uses the MIT license, see LICENSE file for the details.

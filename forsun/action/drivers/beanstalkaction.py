@@ -9,6 +9,10 @@ import beanstalkt
 from ..action import Action
 from ...utils import unicode_type
 
+class BeanstalktClient(beanstalkt.Client):
+    def _reconnect(self):
+        pass
+
 class BeanstalkAction(Action):
     client_pools = {}
 
@@ -20,8 +24,12 @@ class BeanstalkAction(Action):
     @gen.coroutine
     def get_client(self, host, port, watch_key):
         key = "%s:%s:%s" % (host, port, watch_key)
+        if key in self.client_pools:
+            if self.client_pools[key].closed():
+                del self.client_pools[key]
+
         if key not in self.client_pools:
-            client = beanstalkt.Client(host, port)
+            client = BeanstalktClient(host, port)
             yield client.connect()
             yield client.use(watch_key)
             if watch_key != "default":
@@ -39,4 +47,4 @@ class BeanstalkAction(Action):
 
         client = yield self.get_client(host, port, name)
         yield client.put(body.encode("utf-8") if isinstance(body, unicode_type) else body, ttr = 7200)
-        logging.debug("beanstalk action execute %s:%s '%s' %.2fms", host, port, name, (time.time() - self.start_time) * 1000)
+        logging.debug("beanstalk action execute %s:%s '%s' '%s' %.2fms", host, port, name, body, (time.time() - self.start_time) * 1000)

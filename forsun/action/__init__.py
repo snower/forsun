@@ -38,9 +38,9 @@ def init_drivers():
         logging.error("load redis execute error: %s", e)
 
     try:
-        from .drivers import thrifaction
-        __drivers["thrift"] = thrifaction.ThriftAction
-        logging.info("action register thrift %s", thrifaction.ThriftAction)
+        from .drivers import thriftaction
+        __drivers["thrift"] = thriftaction.ThriftAction
+        logging.info("action register thrift %s", thriftaction.ThriftAction)
     except Exception as e:
         logging.error("load thrift execute error: %s", e)
 

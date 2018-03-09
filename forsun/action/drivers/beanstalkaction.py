@@ -45,6 +45,16 @@ class BeanstalkAction(Action):
         name = self.params.get('name', 'default')
         body = self.params.get("body", '')
 
-        client = yield self.get_client(host, port, name)
-        yield client.put(body.encode("utf-8") if isinstance(body, unicode_type) else body, ttr = 7200)
-        logging.debug("beanstalk action execute %s:%s '%s' '%s' %.2fms", host, port, name, body, (time.time() - self.start_time) * 1000)
+        if not body:
+            logging.error("beanstalk action execute error %s body is empty", self.plan.key)
+            raise gen.Return(None)
+
+        try:
+            client = yield self.get_client(host, port, name)
+            yield client.put(body.encode("utf-8") if isinstance(body, unicode_type) else body, ttr = 7200)
+        except Exception as e:
+            logging.error("beanstalk action execute error '%s' %s:%s '%s' '%s' '%s' %.2fms", self.plan.key, host,
+                          port, name, body, e, (time.time() - self.start_time) * 1000)
+        else:
+            logging.debug("beanstalk action execute '%s' %s:%s '%s' '%s' %.2fms", self.plan.key, host, port, name, body,
+                          (time.time() - self.start_time) * 1000)

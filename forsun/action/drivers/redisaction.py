@@ -126,4 +126,4 @@ class RedisAction(Action):
                 future = client.execute_command(cmd, *args)
                 futures.append(future)
             yield futures
-        logging.debug("redis action execute %s:%s/%s '%s' %.2fms", host, port, selected_db, cmds, (time.time() - self.start_time) * 1000)
+        logging.debug("redis action execute '%s' %s:%s/%s '%s' %.2fms", self.plan.key, host, port, selected_db, cmds, (time.time() - self.start_time) * 1000)

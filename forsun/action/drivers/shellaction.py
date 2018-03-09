@@ -33,4 +33,4 @@ class ShellAction(Action):
         env["FORSUN_TIMESTAMP"] = str(self.ts)
 
         subprocess.Popen(shlex.split(cmd), shell=True, close_fds=True, cwd = cwd, env=env)
-        logging.debug("shell action execute '%s' %.2fms", cmd, (time.time() - self.start_time) * 1000)
+        logging.debug("shell action execute '%s' '%s' %.2fms", self.plan.key, cmd, (time.time() - self.start_time) * 1000)

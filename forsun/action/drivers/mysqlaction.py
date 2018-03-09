@@ -43,16 +43,19 @@ class MysqlAction(Action):
         max_connections = int(self.params.get("max_connections", config.get("ACTION_MYSQL_MAX_CONNECTIONS", 8)))
         sql = self.params.get("sql")
 
-        if sql:
-            client = self.get_client(host, port, db, user, passwd, max_connections)
-            tx = yield client.begin()
-            try:
-                yield tx.execute(sql)
-            except Exception as e:
-                yield tx.rollback()
-                logging.error("mysql action execute error %s %s:%s/%s '%s' '%s' %.2fms", user, host, port, db, sql, e,
-                              (time.time() - self.start_time) * 1000)
-            else:
-                yield tx.commit()
-                logging.debug("mysql action execute %s %s:%s/%s '%s' %.2fms", user, host, port, db, sql,
-                              (time.time() - self.start_time) * 1000)
+        if not sql:
+            logging.error("mysql action execute error %s sql is empty", self.plan.key)
+            raise gen.Return(None)
+
+        client = self.get_client(host, port, db, user, passwd, max_connections)
+        tx = yield client.begin()
+        try:
+            yield tx.execute(sql)
+        except Exception as e:
+            yield tx.rollback()
+            logging.error("mysql action execute error '%s' %s %s:%s/%s '%s' '%s' %.2fms", self.plan.key, user, host, port, db, sql, e,
+                          (time.time() - self.start_time) * 1000)
+        else:
+            yield tx.commit()
+            logging.debug("mysql action execute '%s' %s %s:%s/%s '%s' %.2fms", self.plan.key, user, host, port, db, sql,
+                          (time.time() - self.start_time) * 1000)

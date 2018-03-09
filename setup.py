@@ -30,6 +30,7 @@ setup(
         'greenlet>=0.4.2',
         'msgpack>=0.5.1',
         'pytz>=2017.3',
+        'tzlocal>=1.5.1',
     ],
     extras_require = {
         'mysql': ['tormysql>=0.3.6'],

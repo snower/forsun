@@ -8,6 +8,7 @@ import time
 import datetime
 import argparse
 import pytz
+import tzlocal
 from thrift.transport.TTransport import TTransportException
 from ..version import version
 from ..clients import ThriftClient, ForsunPlanError
@@ -40,7 +41,8 @@ def print_plan(plan):
 
     params = ";".join(["%s=%s" % (key, ("'%s'" % value) if isinstance(value, string_type) else value) for key, value in plan.params.items()])
 
-    print(datetime.datetime.fromtimestamp(plan.next_time, pytz.UTC).ctime(), plan.key, " ".join(times), plan.action, '"' + params + '"')
+    print(datetime.datetime.fromtimestamp(plan.next_time, pytz.UTC).astimezone(tzlocal.get_localzone()).strftime("%Y-%m-%d %H:%M:%S"),
+          plan.key, " ".join(times), plan.action, '"' + params + '"')
 
 def cmd_help(*args):
     print("help - show help doc")

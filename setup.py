@@ -29,6 +29,7 @@ setup(
         'tornadis>=0.8.0',
         'greenlet>=0.4.2',
         'msgpack>=0.5.1',
+        'pytz>=2017.3',
     ],
     extras_require = {
         'mysql': ['tormysql>=0.3.6'],

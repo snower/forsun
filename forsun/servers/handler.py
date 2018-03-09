@@ -39,7 +39,7 @@ class Handler(object):
     def create(self, key, second, minute = -1, hour = -1, day = -1, month = -1, week = -1, action="shell", params={}):
         start_time = time.time()
         try:
-            plan = Plan(key, second, minute, hour, day, month, week, is_time_out=False, action=action, params=params, created_time=time.time())
+            plan = Plan(key, second, minute, hour, day, month, week, is_time_out=False, action=action, params=params, created_time=time.mktime(time.gmtime()))
             yield self.forsun.create_plan(plan)
         finally:
             logging.debug("create %s %s %s %s %s %s %s %s %.2fms", key, second, minute, hour, day, month, week, action, (time.time() - start_time) * 1000)
@@ -49,7 +49,7 @@ class Handler(object):
     def createTimeout(self, key, second, minute = -1, hour = -1, day = -1, month = -1, week = -1, count=0, action="shell", params={}):
         start_time = time.time()
         try:
-            plan = Plan(key, second, minute, hour, day, month, week, is_time_out=True, count=count, action=action, params=params, created_time=time.time())
+            plan = Plan(key, second, minute, hour, day, month, week, is_time_out=True, count=count, action=action, params=params, created_time=time.mktime(time.gmtime()))
             yield self.forsun.create_plan(plan)
         finally:
             logging.debug("createTimeout %s %s %s %s %s %s %s %s %s %.2fms", key, second, minute, hour, day, month, week, count, action, (time.time() - start_time) * 1000)

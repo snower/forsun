@@ -14,13 +14,13 @@ __time_out_callback = None
 __exit_callback = None
 __queues = Queue()
 __is_stop = False
-__current_time = int(time.time())
+__current_time = int(time.mktime(time.gmtime()))
 
 def exit_handler(signum, frame):
     __queues.put((__exit_callback, tuple()), False)
 
 def handler(signum, frame):
-    __queues.put((__time_out_callback, (int(time.time()),)), False)
+    __queues.put((__time_out_callback, (int(time.mktime(time.gmtime())),)), False)
 
 def start(callback, exit_callback):
     global __time_out_callback, __exit_callback, __is_stop

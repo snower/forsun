@@ -5,6 +5,7 @@
 import time
 import datetime
 import msgpack
+import pytz
 
 class Plan(object):
     def __init__(self, key, second=0, minute = -1, hour = -1, day = -1, month = -1, week = -1, status = 0, count=0, is_time_out=False, next_time=None, current_count=0, last_timeout=0, created_time=0, action="event", params="{}"):
@@ -29,7 +30,7 @@ class Plan(object):
         else:
             self.get_plan()
 
-        self.next_time = self.get_next_time() if not next_time or int(next_time) <= time.time() else int(next_time)
+        self.next_time = self.get_next_time() if not next_time or int(next_time) <= time.mktime(time.gmtime()) else int(next_time)
 
     def get_timeout(self):
         self.timeout_time = self.second if self.second >= 0 else 0
@@ -40,14 +41,15 @@ class Plan(object):
         self.timeout_time += self.week * 7 * 24 * 60 * 60 if self.week >= 0 else 0
 
     def get_plan(self):
-        now = datetime.datetime.now()
+        now = datetime.datetime.now(pytz.UTC)
         self.start_time = datetime.datetime(
             now.year,
             now.month if self.month == -1 else self.month,
             1 if self.day == -1 else self.day,
             0 if self.hour == -1 else self.hour,
             0 if self.minute == -1 else self.minute,
-            0 if self.second == -1 else self.second
+            0 if self.second == -1 else self.second,
+            tzinfo=pytz.UTC,
         )
 
         self.step_time = None
@@ -70,9 +72,9 @@ class Plan(object):
             return None
 
         if self.is_time_out:
-            return int(time.time()) + self.timeout_time
+            return int(time.mktime(time.gmtime())) + self.timeout_time
         else:
-            now = datetime.datetime.now()
+            now = datetime.datetime.now(pytz.UTC)
             if self.start_time >= now:
                 return int(time.mktime(self.start_time.timetuple()))
             if self.start_time < now and self.step_time is None:
@@ -80,7 +82,10 @@ class Plan(object):
             current_time = self.start_time
             while not self.check(current_time) or current_time < now:
                 if isinstance(self.step_time, int):
-                    current_time = datetime.datetime(current_time.year if current_time.month < 12 else current_time.year + 1, current_time.month + 1 if current_time.month < 12 else 1, current_time.day, current_time.hour, current_time.minute, current_time.second)
+                    current_time = datetime.datetime(current_time.year if current_time.month < 12 else current_time.year + 1,
+                                                     current_time.month + 1 if current_time.month < 12 else 1, current_time.day,
+                                                     current_time.hour, current_time.minute, current_time.second,
+                                                     tzinfo=pytz.UTC)
                 else:
                     current_time += self.step_time
             return int(time.mktime(current_time.timetuple()))

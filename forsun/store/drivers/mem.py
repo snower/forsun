@@ -18,7 +18,7 @@ class MemStore(Store):
 
         self.plans = {}
         self.time_plans = defaultdict(dict)
-        self.current_time = int(time.time())
+        self.current_time = int(time.mktime(time.gmtime()))
         self.store_file = config.get("STORE_MEM_STORE_FILE", "/tmp/forsun.session")
 
         self.load()

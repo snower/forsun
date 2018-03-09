@@ -7,6 +7,7 @@ from __future__ import absolute_import, division, print_function, with_statement
 import time
 import datetime
 import argparse
+import pytz
 from thrift.transport.TTransport import TTransportException
 from ..version import version
 from ..clients import ThriftClient, ForsunPlanError
@@ -39,7 +40,7 @@ def print_plan(plan):
 
     params = ";".join(["%s=%s" % (key, ("'%s'" % value) if isinstance(value, string_type) else value) for key, value in plan.params.items()])
 
-    print(datetime.datetime.fromtimestamp(plan.next_time).strftime("%Y-%m-%d %H:%M:%S"), plan.key, " ".join(times), plan.action, '"' + params + '"')
+    print(datetime.datetime.fromtimestamp(plan.next_time, pytz.UTC).strftime("%Y-%m-%d %H:%M:%S"), plan.key, " ".join(times), plan.action, '"' + params + '"')
 
 def cmd_help(*args):
     print("help - show help doc")
@@ -74,11 +75,11 @@ def cmd_current(*args):
 
 def cmd_time(ts = None, *args):
     if not ts:
-        ts = int(time.time())
+        ts = int(time.mktime(time.gmtime()))
     elif ts.isdigit():
         ts = int(ts)
     else:
-        ts = int(time.mktime(datetime.datetime.strptime(ts, "%Y-%m-%d %H:%M:%S").timetuple()))
+        ts = int(time.mktime(datetime.datetime.strptime(ts, "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC).timetuple()))
     plans = client.get_time(ts)
     for plan in plans:
         print_plan(plan)

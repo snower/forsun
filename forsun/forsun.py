@@ -8,7 +8,7 @@ import logging
 import traceback
 from tornado.ioloop import IOLoop
 from tornado import gen
-from .servers import ThriftServer
+from .servers import Server
 from . import store
 from . import action
 from . import timer
@@ -26,7 +26,7 @@ class Forsun(object):
         action.init_drivers()
         self.init_extensions()
 
-        self.server = ThriftServer(self)
+        self.server = Server(self)
         self.store = store.get_store()
         self.current_time = None
 

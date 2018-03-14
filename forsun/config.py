@@ -15,6 +15,8 @@ DEFAULT_CONFIG = {
     "BIND_ADDRESS": "0.0.0.0",
     "PORT": 6458,
 
+    "HTTP_BIND": "",
+
     "STORE_DRIVER": "mem",
 
     "STORE_MEM_STORE_FILE": "/tmp/forsun.session",

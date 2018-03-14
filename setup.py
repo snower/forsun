@@ -23,9 +23,9 @@ setup(
     packages=find_packages(),
     zip_safe=False,
     install_requires=[
-        'tornado>=4.5',
+        'tornado>=5.0',
         'thrift==0.11.0',
-        'torthrift>=0.2.3',
+        'torthrift>=0.2.4',
         'tornadis>=0.8.0',
         'greenlet>=0.4.2',
         'msgpack>=0.5.1',
@@ -33,7 +33,7 @@ setup(
         'tzlocal>=1.5.1',
     ],
     extras_require = {
-        'mysql': ['tormysql>=0.3.6'],
+        'mysql': ['tormysql>=0.3.7'],
         'beanstalk': ['beanstalkt>=0.7.0'],
     },
     package_data={

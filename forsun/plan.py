@@ -4,10 +4,19 @@
 
 import time
 import datetime
+import struct
 import msgpack
 import pytz
+from . import config
+
+if config.get("STORE_DRIVER") == 'redis':
+    server_id = int(config.get("STORE_REDIS_SERVER_ID"))
+else:
+    server_id = 0
 
 class Plan(object):
+    count_index = 0
+
     def __init__(self, key, second=0, minute = -1, hour = -1, day = -1, month = -1, week = -1, status = 0, count=0, is_time_out=False, next_time=None, current_count=0, last_timeout=0, created_time=0, action="event", params="{}"):
         self.key = key
         self.is_time_out = is_time_out
@@ -25,12 +34,19 @@ class Plan(object):
         self.action = action
         self.params = params
 
+        if not self.key:
+            self.key = self.gen_key()
+
         if self.is_time_out:
             self.get_timeout()
         else:
             self.get_plan()
 
         self.next_time = self.get_next_time() if not next_time or int(next_time) <= time.mktime(time.gmtime()) else int(next_time)
+
+    def gen_key(self):
+        self.__class__.count_index += 1
+        return struct.pack("!III", self.created_time, server_id, self.count_index).encode("hex")
 
     def get_timeout(self):
         self.timeout_time = self.second if self.second >= 0 else 0

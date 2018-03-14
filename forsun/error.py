@@ -45,3 +45,10 @@ class UnknownActionError(ForsunPlanError):
 
     def __hash__(self):
         return id(self)
+
+class RequiredArgumentError(ForsunPlanError):
+    def __init__(self, argument):
+        super(RequiredArgumentError, self).__init__(1007, u"%s参数是必须的" % argument)
+
+    def __hash__(self):
+        return id(self)

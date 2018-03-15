@@ -6,6 +6,7 @@ import os
 import sys
 import logging
 import traceback
+import threading
 from tornado.ioloop import IOLoop
 from tornado import gen
 from .servers import Server
@@ -20,7 +21,8 @@ from . import error
 class Forsun(object):
     def __init__(self):
         log.init_config()
-        self.ioloop = IOLoop.current()
+        self.ioloop = None
+        self.read_event = threading.Event()
 
         store.init_stores()
         action.init_drivers()
@@ -114,7 +116,8 @@ class Forsun(object):
             logging.error("check error: %s %s", ts, e)
 
     def time_out(self, ts):
-        self.ioloop.add_callback(self.check, ts)
+        if self.ioloop:
+            self.ioloop.add_callback(self.check, ts)
 
     @gen.coroutine
     def create_plan(self, plan):
@@ -173,9 +176,14 @@ class Forsun(object):
 
     def serve(self):
         try:
-            self.ioloop.add_callback(self.init)
-            self.ioloop.add_callback(logging.info, "forsun ready %s", os.getpid())
-            self.server.start()
+            def init():
+                self.ioloop = IOLoop.current()
+                self.ioloop.add_callback(self.init)
+                self.ioloop.add_callback(logging.info, "forsun ready %s", os.getpid())
+                self.read_event.set()
+
+            self.server.start(init)
+            self.read_event.wait()
             timer.start(self.time_out, self.exit)
             timer.loop()
         except KeyboardInterrupt:
@@ -188,5 +196,10 @@ class Forsun(object):
             self.server.stop()
             timer.stop()
             logging.info("stoped current time %s", timer.current())
-        self.ioloop.add_callback(on_exit)
+
+        if self.ioloop is None:
+            self.read_event.set()
+            timer.stop()
+        else:
+            self.ioloop.add_callback(on_exit)
         logging.info("stoping")

@@ -4,7 +4,7 @@
 
 import logging
 import threading
-from tornado.ioloop import IOLoop
+from tornado.ioloop import IOLoop, asyncio
 from tornado.httpserver import HTTPServer
 from thrift.protocol.TBinaryProtocol import TBinaryProtocolAcceleratedFactory
 from torthrift.transport import TIOStreamTransportFactory
@@ -47,15 +47,21 @@ class Server(object):
         self.http_server.start(1)
         logging.info("starting http server by %s", http_bind)
 
-    def start(self):
+    def start(self, init_callback):
         def _():
             try:
+                if asyncio is not None:
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+
                 self.serve_thrift()
                 self.serve_http()
                 ioloop = IOLoop.instance()
+                ioloop.add_callback(init_callback)
                 ioloop.start()
             except Exception as e:
                 logging.error("server error: %s", e)
+                self.forsun.read_event.set()
                 timer.stop()
 
         self.thread = threading.Thread(target=_)

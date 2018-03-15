@@ -39,11 +39,12 @@ def init_config():
                 'level': log_level
             },
             "tornado.application": {
-                'handlers': ['main'],
                 'level': log_level
             },
             "tornado.general": {
-                'handlers': ['main'],
+                'level': log_level
+            },
+            "tornado.access": {
                 'level': log_level
             },
             "tornadis.pool": {

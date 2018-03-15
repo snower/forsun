@@ -3,9 +3,11 @@
 # create by: snower
 
 import logging
-from tornado.ioloop import IOLoop
+from collections import deque
+from tornado.ioloop import IOLoop, PeriodicCallback
 from tornado import gen
 from tornado.concurrent import Future
+from tornado.locks import Semaphore
 import tornadis
 from ... import config
 from ...plan import Plan
@@ -13,13 +15,31 @@ from ..store import Store
 from ...utils import is_py3
 from ... import timer
 
+class ClientPool(tornadis.ClientPool):
+    def __init__(self, max_size=-1, client_timeout=-1, autoclose=False, **client_kwargs):
+        self.max_size = max_size
+        self.client_timeout = client_timeout
+        self.client_kwargs = client_kwargs
+        self.__ioloop = client_kwargs.get('ioloop', IOLoop.instance())
+        self.autoclose = autoclose
+        self.__pool = deque()
+        if self.max_size != -1:
+            self.__sem = Semaphore(self.max_size)
+        else:
+            self.__sem = None
+        self.__autoclose_periodic = None
+        if self.autoclose and self.client_timeout > 0:
+            every = int(self.client_timeout) * 100
+            self.__autoclose_periodic = PeriodicCallback(self._autoclose, every)
+            self.__autoclose_periodic.start()
+
 class RedisClient(object):
     def __init__(self, host, port, selected_db = 0, max_connections = 4, client_timeout = 7200, bulk_size = 5):
         self.ioloop = IOLoop.current()
         self.max_connections = max_connections
         self.current_connections = 0
         self.bulk_size = bulk_size
-        self.pool = tornadis.ClientPool(
+        self.pool = ClientPool(
             max_size = -1,
             client_timeout = client_timeout,
             autoclose = True,

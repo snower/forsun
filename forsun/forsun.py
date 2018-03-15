@@ -23,17 +23,17 @@ class Forsun(object):
         log.init_config()
         self.ioloop = None
         self.read_event = threading.Event()
+        self.store = None
+        self.current_time = None
 
         store.init_stores()
         action.init_drivers()
         self.init_extensions()
-
         self.server = Server(self)
-        self.store = store.get_store()
-        self.current_time = None
 
     @gen.coroutine
     def init(self):
+        self.store = store.get_store()
         ExtensionManager.init()
         yield self.store.init()
 

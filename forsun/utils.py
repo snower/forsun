@@ -36,7 +36,7 @@ def load_extensions(name):
     except ImportError:
         return ExtensionsNotFound(name)
 
-def parse_cmd(command, parse_kwargs = True):
+def parse_cmd(command, parse_kwargs = True, split_cmd = True):
     cmds = []
     args = []
     carg = []
@@ -112,5 +112,8 @@ def parse_cmd(command, parse_kwargs = True):
             args.append("".join(carg))
 
     if args:
-        cmds.append((args[0], tuple(args[1:])))
+        if split_cmd:
+            cmds.append((args[0], tuple(args[1:])))
+        else:
+            cmds.append(args)
     return cmds

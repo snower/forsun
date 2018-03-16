@@ -179,7 +179,7 @@ class RequestHandler(BaseRequestHandler):
                 yield self.application.forsun.create_plan(plan)
             plans.append(self.plan_to_dict(plan))
         if not plans:
-            raise ArithmeticError()
+            raise RequiredArgumentError()
         raise gen.Return(plans[0] if len(plans) == 1 else plans)
 
 class PingRequestHandler(RequestHandler):

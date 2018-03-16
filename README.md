@@ -22,9 +22,9 @@ python setup.py install
 # Start Server
 
 ```
-forsund -h
-usage: forsund [-h] [--bind BIND_HOST] [--port BIND_PORT] [--demon DEMON]
-               [--log LOG_FILE] [--log-level LOG_LEVEL] [--driver DRIVER]
+usage: forsund [-h] [--bind BIND_HOST] [--port BIND_PORT] [--http HTTP_BIND]
+               [--demon [DEMON]] [--log LOG_FILE] [--log-level LOG_LEVEL]
+               [--driver DRIVER]
                [--driver-mem-store-file STORE_MEM_STORE_FILE]
                [--driver-redis-host DRIVER_REDIS_HOST]
                [--driver-redis-port DRIVER_REDIS_PORT]
@@ -39,7 +39,8 @@ optional arguments:
   -h, --help            show this help message and exit
   --bind BIND_HOST      bind host (default: 0.0.0.0)
   --port BIND_PORT      bind port (default: 6458)
-  --demon DEMON         run demon mode
+  --http HTTP_BIND      bind http server (default: ) example: 0.0.0.0:80
+  --demon [DEMON]       run demon mode
   --log LOG_FILE        log file
   --log-level LOG_LEVEL
                         log level (defaul: INFO)
@@ -61,6 +62,24 @@ optional arguments:
                         extension path
   --extension EXTENSIONS
                         extension name
+```
+
+### 使用内存持久化存储启动：
+
+```
+forsund --bind=0.0.0.0 --port=6458 --log=/var/log/forsun.log --log-level=INFO --driver=mem --driver-mem-store-file=/var/lib/fousun/forsun.session --demon
+```
+
+### 使用redis持久化存储启动：
+
+```
+forsund --bind=0.0.0.0 --port=6458 --log=/var/log/forsun.log --log-level=INFO --driver=redis --driver-redis-host=127.0.0.1 --driver-redis-db=1 --demon
+```
+
+### 提供http接口：
+
+```
+forsund --bind=0.0.0.0 --port=6458 --http=0.0.0.0:9001 --log=/var/log/forsun.log --log-level=INFO --driver=redis --driver-redis-host=127.0.0.1 --driver-redis-db=1 --demon
 ```
 
 # Command
@@ -149,9 +168,9 @@ mkdir /var/lib/forsun
 mkdir /var/log/forsun
 
 #build
-docker build -t forsun:0.0.2 .
+docker build -t forsun:0.0.4 .
 #start
-docker run -d -p 6458:6458 -v /var/lib/forsun:/var/lib/forsun -v /var/log/forsun:/var/log/forsun forsun:0.0.2
+docker run -d -p 6458:6458 -p 9002:9002 -v /var/lib/forsun:/var/lib/forsun -v /var/log/forsun:/var/log/forsun forsun:0.0.4
 ```
 
 # Action

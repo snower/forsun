@@ -9,11 +9,11 @@
 	
 - [安装](#安装)
 - [启动服务](#启动服务)
-- [Bash接口](#Bash接口)
-- [Thrift接口](#Thrift接口)
-- [HTTP接口](#HTTP接口)
-- [Docker](#Docker)
-- [Action参数详解](#Action参数详解)
+- [Bash接口](#bash接口)
+- [Thrift接口](#thrift接口)
+- [HTTP接口](#http接口)
+- [Docker](#docker)
+- [Action参数详解](#action参数详解)
 
 # 安装
 

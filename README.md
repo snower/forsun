@@ -1,14 +1,21 @@
+
 # forsun
 
 高性能的定时调度服务。
 
-# About
-
 使用Linux系统定时器产生精确到秒的定时，长时间运行无误差，支持内存存储和redis持久化存储，轻松支持千万级定时任务调度，支持shell、http、reids、thrift、beanstalk、mysql六种到时触发回调方式，并可以通过扩展轻松自定义回调器。
 
 使用crontab相似命令创建管理任务，同时Thrift接口创建和取消任务，支持大量语言接入。
+	
+- [安装](#安装)
+- [启动服务](#启动服务)
+- [Bash接口](#Bash接口)
+- [Thrift接口](#Thrift接口)
+- [HTTP接口](#HTTP接口)
+- [Docker](#Docker)
+- [Action参数详解](#Action参数详解)
 
-# Installation
+# 安装
 
 ```
 pip install forsun
@@ -19,7 +26,7 @@ git clone https://github.com/snower/forsun.git
 python setup.py install
 ```
 
-# Start Server
+# 启动服务
 
 ```
 usage: forsund [-h] [--bind BIND_HOST] [--port BIND_PORT] [--http HTTP_BIND]
@@ -82,7 +89,7 @@ forsund --bind=0.0.0.0 --port=6458 --log=/var/log/forsun.log --log-level=INFO --
 forsund --bind=0.0.0.0 --port=6458 --http=0.0.0.0:9001 --log=/var/log/forsun.log --log-level=INFO --driver=redis --driver-redis-host=127.0.0.1 --driver-redis-db=1 --demon
 ```
 
-# Command
+# Bash接口
 
 ```
 forsun -h
@@ -116,7 +123,7 @@ forsun "set http 0 32 16 * * * http 'url=\'http://www.baidu.com\''"
 forsun "set mysql 32 16 * * * mysql 'host=172.16.0.2;user=root;passwd=123456;db=test;sql=\'update test set created_at=now() where id=1\'"
 ```
 
-# Thrift Interface
+# Thrift接口
 
 ```
 exception ForsunPlanError{
@@ -155,7 +162,7 @@ service Forsun{
 }
 ```
 
-# HTTP Interface
+# HTTP接口
 
 启用http接口需添加--http参数，如--http=0.0.0.0:8001
 
@@ -250,7 +257,7 @@ docker build -t forsun:0.0.4 .
 docker run -d -p 6458:6458 -p 9002:9002 -v /var/lib/forsun:/var/lib/forsun -v /var/log/forsun:/var/log/forsun forsun:0.0.4
 ```
 
-# Action
+# Action参数详解
 
 回调器参数为create和createTimeout最后一个参数params key和value的map。
 

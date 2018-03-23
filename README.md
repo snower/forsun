@@ -155,6 +155,83 @@ service Forsun{
 }
 ```
 
+# HTTP Interface
+
+启用http接口需添加--http参数，如--http=0.0.0.0:8001
+
+### 创建定时执行任务
+
+POST /v1/plan
+
+```
+# 在03-23 16:35:01执行http get请求http://www.baidu.com/
+curl -X POST -H 'Content-Type: application/json' -d '{"key": "test", "second": 1, "minute": 35, "hour": 16, "day": 23, "month": 3, "action": "http", "params": {"url": "http://www.baidu.com/"}}' http://127.0.0.1:8001/v1/plan
+
+{"data": {"week": -1, "status": 0, "is_time_out": false, "hour": 16, "current_count": 0, "count": 0, "month": 3, "action": "http", "second": -1, "params": {"url": "http://www.baidu.com/"}, "key": "test", "created_time": 1521764975.0, "next_time": 1521794100, "last_timeout": 0, "day": 23, "minute": 35}, "errcode": 0, "errmsg": ""}
+```
+
+action及params参数信息请查看下Action参数信息
+
+### 创建延时任务
+
+PUT /v1/plan
+
+```
+# 5秒后执行1次http get请求http://www.baidu.com/
+curl -X PUT -H 'Content-Type: application/json' -d '{"key": "test", "second": 5, "minute": 0, "hour": 0, "day": 0, "month": 0, "count": 0, "action": "http", "params": {"url": "http://www.baidu.com/"}}' http://127.0.0.1:8001/v1/plan
+
+{"data": {"week": -1, "status": 0, "is_time_out": true, "hour": 0, "current_count": 0, "count": 0, "month": 0, "action": "http", "second": -1, "params": {"url": "http://www.baidu.com/"}, "key": "test", "created_time": 1521765952.0, "next_time": 1521765952, "last_timeout": 0, "day": 0, "minute": 0}, "errcode": 0, "errmsg": ""}
+```
+action及params参数信息请查看下Action参数信息
+
+### 查询任务
+
+GET /v1/plan
+
+```
+# 查询test任务信息
+curl -X GET -H 'Content-Type: application/json' http://127.0.0.1:8001/v1/plan?key=test
+
+{"data": {"week": -1, "status": 0, "is_time_out": true, "hour": 0, "current_count": 1, "count": 0, "month": 0, "action": "http", "second": -1, "params": {"url": "http://www.baidu.com/"}, "key": "test", "created_time": 1521766188.0, "next_time": 1521766213, "last_timeout": 1521766188, "day": 0, "minute": 0}, "errcode": 0, "errmsg": ""}
+```
+
+### 删除任务
+
+DELETE /v1/plan
+
+```
+# 删除test任务信息
+
+curl -X DELETE -H 'Content-Type: application/json' http://127.0.0.1:8001/v1/plan?key=test
+
+{"data": {"week": -1, "status": 0, "is_time_out": true, "hour": 0, "current_count": 1, "count": 0, "month": 0, "action": "http", "second": -1, "params": {"url": "http://www.baidu.com/"}, "key": "test", "created_time": 1521766188.0, "next_time": 1521766378, "last_timeout": 1521766188, "day": 0, "minute": 0}, "errcode": 0, "errmsg": ""}
+```
+
+### 获取某时刻执行任务信息
+
+GET /v1/time
+
+```
+# 查询1521795279这一刻要执行的任务信息
+
+curl -X GET -H 'Content-Type: application/json' http://127.0.0.1:8001/v1/time?timestamp=1521795279
+
+{"data": {"current_timestamp": 1521159718, "plans": []}, "errcode": 0, "errmsg": ""}
+```
+
+timestamp参数不传递或为0查询下一秒执行任务信息
+
+### 查询任务KEY
+
+GET /v1/keys
+
+```
+# 过滤t开头的任务
+curl -X GET -H 'Content-Type: application/json' http://127.0.0.1:8001/v1/keys?prefix=t
+
+{"data": [], "errcode": 0, "errmsg": ""}
+```
+
 # Docker
 
 使用docker运行，注意：使用docker运行时，shell和宿主机在同一环境，执行shell时将在docker中运行。

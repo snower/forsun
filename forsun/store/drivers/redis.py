@@ -21,7 +21,7 @@ class HookPeriodicCallback(PeriodicCallback):
 ioloop.PeriodicCallback = HookPeriodicCallback
 
 class RedisClient(object):
-    def __init__(self, host, port, selected_db = 0, max_connections = 4, client_timeout = 7200, bulk_size = 5):
+    def __init__(self, host, port, selected_db = 0, password= None, max_connections = 4, client_timeout = 7200, bulk_size = 5):
         self.ioloop = IOLoop.current()
         self.max_connections = max_connections
         self.current_connections = 0
@@ -33,6 +33,8 @@ class RedisClient(object):
             host= host,
             port = port,
             db = selected_db,
+            password = password,
+            tcp_nodelay = True,
         )
         self._commands = []
         self.executing = False
@@ -146,11 +148,13 @@ class RedisStore(Store):
         host = config.get("STORE_REDIS_HOST", "127.0.0.1")
         port = config.get("STORE_REDIS_PORT", 6379)
         selected_db = config.get("STORE_REDIS_DB", 0)
+        password = config.get("password", None)
 
         self.db = RedisClient(
             host=host,
             port=port,
             selected_db=selected_db,
+            password = password,
             max_connections=int(config.get("STORE_REDIS_MAX_CONNECTIONS", 8)),
             client_timeout=int(config.get("STORE_REDIS_CLIENT_TIMEOUT", 7200)),
             bulk_size=int(config.get("STORE_REDIS_BULK_SIZE", 5)),

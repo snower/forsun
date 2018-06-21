@@ -13,7 +13,7 @@ from ...utils import parse_cmd
 from ... import config
 
 class RedisClient(object):
-    def __init__(self, host, port, selected_db = 0, max_connections = 4, client_timeout = 7200, bulk_size = 5):
+    def __init__(self, host, port, selected_db = 0, password = None, max_connections = 4, client_timeout = 7200, bulk_size = 5):
         self.ioloop = IOLoop.current()
         self.max_connections = max_connections
         self.current_connections = 0
@@ -25,6 +25,8 @@ class RedisClient(object):
             host= host,
             port = port,
             db = selected_db,
+            password = password,
+            tcp_nodelay = True,
         )
         self._commands = []
         self.executing = False
@@ -98,7 +100,7 @@ class RedisAction(Action):
 
         self.start_time  = time.time()
 
-    def get_client(self, host, port, selected_db, max_connections):
+    def get_client(self, host, port, selected_db, password, max_connections):
         key = "%s:%s:%s" % (host, port, selected_db)
         if key not in self.client_pools:
             client_timeout = int(config.get("ACTION_REDIS_CLIENT_TIMEOUT", 8))
@@ -115,12 +117,13 @@ class RedisAction(Action):
         host = self.params.get("host", "127.0.0.1")
         port = int(self.params.get("port", 6379))
         selected_db = int(self.params.get("selected_db", 0))
+        password = self.params.get("password", None)
         max_connections = int(self.params.get("max_connections", config.get("ACTION_REDIS_MAX_CONNECTIONS", 8)))
         command = self.params.get("command")
         cmds = parse_cmd(command, True)
 
         if cmds:
-            client = self.get_client(host, port, selected_db, max_connections)
+            client = self.get_client(host, port, selected_db, password, max_connections)
             futures = []
             for cmd, args in cmds:
                 future = client.execute_command(cmd, *args)

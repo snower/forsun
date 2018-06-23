@@ -4,7 +4,9 @@
 
 import time
 import logging
+import socket
 from tornado import gen
+from tornado.iostream import IOStream
 import beanstalkt
 from ..action import Action
 from ...utils import unicode_type
@@ -12,6 +14,18 @@ from ...utils import unicode_type
 class BeanstalktClient(beanstalkt.Client):
     def _reconnect(self):
         pass
+
+    @gen.coroutine
+    def connect(self):
+        """Connect to beanstalkd server."""
+        if not self.closed():
+            return
+        self._talking = False
+        self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM,
+                                     socket.IPPROTO_TCP)
+        self._stream = IOStream(self._socket)
+        self._stream.set_close_callback(self._reconnect)
+        yield self._stream.connect(self.host, self.port)
 
 class BeanstalkAction(Action):
     client_pools = {}

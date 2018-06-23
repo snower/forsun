@@ -21,11 +21,10 @@ class BeanstalktClient(beanstalkt.Client):
         if not self.closed():
             return
         self._talking = False
-        self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM,
-                                     socket.IPPROTO_TCP)
+        self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
         self._stream = IOStream(self._socket)
         self._stream.set_close_callback(self._reconnect)
-        yield self._stream.connect(self.host, self.port)
+        yield self._stream.connect((self.host, self.port))
 
 class BeanstalkAction(Action):
     client_pools = {}

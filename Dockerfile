@@ -18,7 +18,7 @@ RUN apt-get update \
     && pip install torthrift==0.2.4 \
     && pip install tornadis==0.8.0 \
     && pip install msgpack==0.5.1 \
-    && pip install forsun==0.0.5 \
+    && pip install forsun==0.0.6 \
     && pip install beanstalkt==0.7.0 \
     && pip install pymysql==0.7.10 \
     && pip install tormysql==0.3.7 \

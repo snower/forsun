@@ -163,7 +163,7 @@ class RedisStore(Store):
 
     @gen.coroutine
     def set_current(self, current_time):
-        res = yield self.db.set(self.prefix + ":current:time", str(current_time), expire = 2592000)
+        res = yield self.db.set(self.prefix + ":current:time", str(current_time), expire = config.get("STORE_REDIS_CURRENTTIME_EXPRIED", 2592000))
         raise gen.Return(res)
 
     @gen.coroutine
@@ -173,7 +173,7 @@ class RedisStore(Store):
 
     @gen.coroutine
     def set_plan(self, plan):
-        res = yield self.db.set("".join([self.prefix, ":plan:", plan.key]), plan.dumps(), expire = plan.next_time - timer.current() + 604800)
+        res = yield self.db.set("".join([self.prefix, ":plan:", plan.key]), plan.dumps(), expire = plan.next_time - timer.current() + config.get("STORE_REDIS_PLAN_EXPRIED", 604800))
         raise gen.Return(res)
 
     @gen.coroutine
@@ -197,7 +197,7 @@ class RedisStore(Store):
     def add_time_plan(self, plan):
         key = "".join([self.prefix, ":time:", str(plan.next_time)])
         res = yield self.db.hset(key, plan.key, '0')
-        yield self.db.expire(key, plan.next_time - timer.current() + 604800)
+        yield self.db.expire(key, plan.next_time - timer.current() + config.get("STORE_REDIS_PLANTIME_EXPRIED", 604800))
         raise gen.Return(res)
 
     @gen.coroutine

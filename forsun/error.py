@@ -4,6 +4,10 @@
 
 from .servers.processor.ttypes import ForsunPlanError
 
+class ActionExecuteRetry(Exception):
+    def __init__(self):
+        pass
+
 class UnknownError(ForsunPlanError):
     def __init__(self):
         super(UnknownError, self).__init__(1001, u"未知错误")

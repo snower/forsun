@@ -6,6 +6,7 @@ import logging
 import traceback
 from tornado import gen
 from .action import Action
+from ..error import ActionExecuteRetry
 
 __drivers = None
 
@@ -80,5 +81,7 @@ def execute(ts, plan):
     driver = driver_cls(ts, plan, plan.action, plan.params)
     try:
         yield driver.execute()
+    except ActionExecuteRetry as e:
+        raise e
     except Exception as e:
         logging.error("action %s %s %s execute error: %s\n%s", driver.action, driver.ts, driver.params, e, traceback.format_exc())

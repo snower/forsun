@@ -4,12 +4,14 @@
 
 import os
 import sys
+import time
 import logging
 import traceback
 import threading
 from tornado.ioloop import IOLoop
 from tornado import gen
 from .servers import Server
+from .plan import Plan
 from . import store
 from . import action
 from . import timer
@@ -62,11 +64,32 @@ class Forsun(object):
         ExtensionManager.register()
 
     @gen.coroutine
+    def retry_plan(self, plan):
+        try:
+            if "_:_retry" in plan.key:
+                keys = plan.key.split(":")
+                retry_count = int(keys[-1]) + 1
+                key = ":".join(keys[:-1]) + str(retry_count)
+            else:
+                retry_count = 1
+                key = plan.key + ":_:_retry:1"
+
+            if retry_count <= config.get("ACTION_RETRY_MAX_COUNT", 0):
+                delay_seconds = config.get("ACTION_RETRY_DELAY_SECONDS", 3)
+                delay_time = delay_seconds + delay_seconds * config.get("ACTION_RETRY_DELAY_RATE", 1) * retry_count
+                delay_plan = Plan(key, delay_time, is_time_out=True, count=1, action=plan.action, params=plan.params, created_time=time.mktime(time.gmtime()))
+                yield self.create_plan(delay_plan)
+        except Exception as e:
+            logging.error("plan %s retry error: %s\n%s", plan.key, e, traceback.format_exc())
+
+    @gen.coroutine
     def execute_action(self, ts, plan):
         try:
             yield action.execute(ts, plan)
+        except error.ActionExecuteRetry:
+            yield self.retry_plan(plan)
         except Exception as e:
-            logging.error("plan %s action execute error: %s\n", plan.key, e, traceback.format_exc())
+            logging.error("plan %s action execute error: %s\n%s", plan.key, e, traceback.format_exc())
 
     @gen.coroutine
     def check_plan(self, ts, plan):

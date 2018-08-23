@@ -12,6 +12,7 @@ from torthrift.client import PoolClient
 from ...clients.client.Forsun import Client
 from ..action import Action, ExecuteActionError
 from ... import config
+from ...error import ActionExecuteRetry
 
 class ThriftAction(Action):
     client_pools = {}
@@ -38,10 +39,17 @@ class ThriftAction(Action):
         port = int(self.params.get("port", 5643))
         max_connections = int(self.params.get("max_connections", config.get("ACTION_THRIFT_MAX_CONNECTIONS", 64)))
 
-        client = self.get_client(host, port, max_connections)
         try:
-            yield client.forsun_call(self.plan.key, int(self.ts), self.params)
-        except TApplicationException as e:
-            logging.error("thrift action execute error '%s' %s:%s '%s' %.2fms", self.plan.key, host, port, e, (time.time() - self.start_time) * 1000)
-        else:
-            logging.debug("thrift action execute '%s' %s:%s %.2fms", self.plan.key, host, port, (time.time() - self.start_time) * 1000)
+            client = self.get_client(host, port, max_connections)
+            try:
+                yield client.forsun_call(self.plan.key, int(self.ts), self.params)
+            except TApplicationException as e:
+                logging.error("thrift action execute error '%s' %s:%s '%s' %.2fms", self.plan.key, host, port, e,
+                              (time.time() - self.start_time) * 1000)
+            else:
+                logging.debug("thrift action execute '%s' %s:%s %.2fms", self.plan.key, host, port,
+                              (time.time() - self.start_time) * 1000)
+        except Exception as e:
+            logging.error("thrift action execute error '%s' %s:%s '%s' %.2fms", self.plan.key, host, port, e,
+                          (time.time() - self.start_time) * 1000)
+            raise ActionExecuteRetry()

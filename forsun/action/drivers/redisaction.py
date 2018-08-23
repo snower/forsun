@@ -11,6 +11,7 @@ import tornadis
 from ..action import Action, ExecuteActionError
 from ...utils import parse_cmd
 from ... import config
+from ...error import ActionExecuteRetry
 
 class RedisClient(object):
     def __init__(self, host, port, selected_db = 0, password = None, max_connections = 4, client_timeout = 7200, bulk_size = 5):
@@ -123,10 +124,20 @@ class RedisAction(Action):
         cmds = parse_cmd(command, True)
 
         if cmds:
-            client = self.get_client(host, port, selected_db, password, max_connections)
-            futures = []
-            for cmd, args in cmds:
-                future = client.execute_command(cmd, *args)
-                futures.append(future)
-            yield futures
-        logging.debug("redis action execute '%s' %s:%s/%s '%s' %.2fms", self.plan.key, host, port, selected_db, cmds, (time.time() - self.start_time) * 1000)
+            try:
+                client = self.get_client(host, port, selected_db, password, max_connections)
+                try:
+                    futures = []
+                    for cmd, args in cmds:
+                        future = client.execute_command(cmd, *args)
+                        futures.append(future)
+                    yield futures
+                except Exception as e:
+                    logging.debug("redis action execute '%s' %s:%s/%s '%s' %s %.2fms", self.plan.key, host, port,
+                                  selected_db, cmds, e, (time.time() - self.start_time) * 1000)
+            except Exception as e:
+                logging.debug("redis action execute '%s' %s:%s/%s '%s' %s %.2fms", self.plan.key, host, port,
+                              selected_db, cmds, e, (time.time() - self.start_time) * 1000)
+                raise ActionExecuteRetry()
+        logging.debug("redis action execute '%s' %s:%s/%s '%s' %.2fms", self.plan.key, host, port, selected_db,
+                      cmds, (time.time() - self.start_time) * 1000)

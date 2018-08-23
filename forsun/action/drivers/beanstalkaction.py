@@ -10,6 +10,7 @@ from tornado.iostream import IOStream
 import beanstalkt
 from ..action import Action
 from ...utils import unicode_type
+from ...error import ActionExecuteRetry
 
 class BeanstalktClient(beanstalkt.Client):
     def _reconnect(self):
@@ -68,6 +69,7 @@ class BeanstalkAction(Action):
         except Exception as e:
             logging.error("beanstalk action execute error '%s' %s:%s '%s' '%s' '%s' %.2fms", self.plan.key, host,
                           port, name, body, e, (time.time() - self.start_time) * 1000)
+            raise ActionExecuteRetry()
         else:
             logging.debug("beanstalk action execute '%s' %s:%s '%s' '%s' %.2fms", self.plan.key, host, port, name, body,
                           (time.time() - self.start_time) * 1000)

@@ -8,6 +8,7 @@ from tornado import gen
 from tornado.httpclient import AsyncHTTPClient, HTTPRequest
 from ..action import Action, ExecuteActionError
 from ... import config
+from ...error import ActionExecuteRetry
 
 class HttpAction(Action):
     def __init__(self, *args, **kwargs):
@@ -56,4 +57,7 @@ class HttpAction(Action):
                               user_agent = user_agent, connect_timeout=connect_timeout, request_timeout=request_timeout
         )
         response = yield self.client.fetch(request, raise_error = False)
-        logging.debug("http action execute '%s' %s '%s' %s '%s' %.2fms", self.plan.key, method, url, response.code, response.reason, (time.time() - self.start_time) * 1000)
+        logging.debug("http action execute '%s' %s '%s' %s '%s' %.2fms", self.plan.key, method, url,
+                      response.code, response.reason, (time.time() - self.start_time) * 1000)
+        if response and response.code >= 500:
+            raise ActionExecuteRetry()

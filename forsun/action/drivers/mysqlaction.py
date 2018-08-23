@@ -8,6 +8,7 @@ from tornado import gen
 from tormysql.helpers import ConnectionPool
 from ..action import Action, ExecuteActionError
 from ... import config
+from ...error import ActionExecuteRetry
 
 class MysqlAction(Action):
     client_pools = {}
@@ -47,15 +48,20 @@ class MysqlAction(Action):
             logging.error("mysql action execute error %s sql is empty", self.plan.key)
             raise gen.Return(None)
 
-        client = self.get_client(host, port, db, user, passwd, max_connections)
-        tx = yield client.begin()
         try:
-            yield tx.execute(sql)
+            client = self.get_client(host, port, db, user, passwd, max_connections)
+            tx = yield client.begin()
+            try:
+                yield tx.execute(sql)
+            except Exception as e:
+                yield tx.rollback()
+                logging.error("mysql action execute error '%s' %s %s:%s/%s '%s' '%s' %.2fms", self.plan.key, user, host,
+                              port, db, sql, e, (time.time() - self.start_time) * 1000)
+            else:
+                yield tx.commit()
+                logging.debug("mysql action execute '%s' %s %s:%s/%s '%s' %.2fms", self.plan.key, user, host, port, db,
+                              sql, (time.time() - self.start_time) * 1000)
         except Exception as e:
-            yield tx.rollback()
-            logging.error("mysql action execute error '%s' %s %s:%s/%s '%s' '%s' %.2fms", self.plan.key, user, host, port, db, sql, e,
-                          (time.time() - self.start_time) * 1000)
-        else:
-            yield tx.commit()
-            logging.debug("mysql action execute '%s' %s %s:%s/%s '%s' %.2fms", self.plan.key, user, host, port, db, sql,
-                          (time.time() - self.start_time) * 1000)
+            logging.error("mysql action execute error '%s' %s %s:%s/%s '%s' '%s' %.2fms", self.plan.key, user, host,
+                          port, db, sql, e, (time.time() - self.start_time) * 1000)
+            raise ActionExecuteRetry()

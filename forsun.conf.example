@@ -1,0 +1,105 @@
+# High-performance timing scheduling service
+
+# 监听端口
+port=6458
+
+# 监听地址
+bind_address=127.0.0.1
+
+# 监听http端口地址信息，如0.0.0.0:9000
+# 设置则提供http服务
+http_bind=
+
+# 日志文件地址
+log_file=/var/log/funsun.log
+
+# 日志级别
+log_level=INFO
+
+# 日志输出格式化信息
+log_format=
+
+
+# 持久化存储设置
+[store]
+
+# 持久化类型，支持mem和redis
+driver=mem
+
+# 内存服务进程退出时计时器暂存区
+mem_store_file=/tmp/forsun.session
+
+# 保存计时器redis地址
+redis_host=127.0.0.1
+# 保存计时器redis端口
+redis_port=6379
+# 保存计时器redis数据库
+redis_db=0
+# 保存计时器redis key前缀
+redis_prefix=forsun
+# 保存计时器redis forusn服务ID
+redis_server_id=0
+# 保存计时器redis最大连接数
+redis_max_connections=8
+# 保存计时器redis连接空闲超时时间
+redis_client_timeout=7200
+# 保存计时器redis命令批量操作数
+redis_bulk_size=5
+# 保存计时器redis保存当前时间key过期时间
+redis_currenttime_expried=2592000
+# 保存计时器redis计划额外过期时间
+redis_plan_expried=604800
+# 保存计时器redis计时器额外过期时间
+redis_plantime_expried=604800
+
+# 执行器配置
+[action]
+
+# 执行器出错重试时间
+retry_delay_seconds=3
+# 执行器出错重试时间倍数
+retry_delay_rate=1
+# 执行器出错重试次数
+retry_max_count=3
+poll_idle_seconds=120
+
+# shell执行器执行目录
+shell_cwd=/tmp
+
+# http最大并发连接数
+http_max_clients=64
+# http连接超时时间
+http_connect_timeout=5
+# http最大处理时间
+http_request_timeout=120
+# http USER-AGENT
+http_user_agent=
+
+# redis最大连接数
+redis_max_connections=8
+# redis空闲时间
+redis_client_timeout=7200
+# redis批量处理时间
+redis_bulk_size=5
+
+# thrift最大连接数
+thrift_max_connections=64
+
+# mysql 默认账户名
+mysql_user=root
+# mysql默认密码
+mysql_passwd=
+# mysql 最大连接数
+mysql_max_connections=8
+# mysql 队列最大等待时间
+mysql_wait_connection_timeout=7200
+# mysql 空闲等待时间
+mysql_idle_seconds=120
+
+# 扩展配置
+[extension]
+
+# 扩展目录
+path=
+# 载入扩展，已;分隔
+extensions=a;b

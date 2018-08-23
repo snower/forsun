@@ -3,7 +3,15 @@
 # create by: snower
 
 import os
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
+import configparser
 from .utils import string_type, number_type
+
+class ConfFileNotFoundError(Exception):
+    pass
 
 __config = {}
 
@@ -41,6 +49,7 @@ DEFAULT_CONFIG = {
     "ACTION_HTTP_MAX_CLIENTS": 64,
     "ACTION_HTTP_CONNECT_TIMEOUT": 5,
     "ACTION_HTTP_REQUEST_TIMEOUT": 120,
+    "ACTION_HTTP_USER_AGENT": "",
     "ACTION_REDIS_MAX_CONNECTIONS": 8,
     "ACTION_REDIS_CLIENT_TIMEOUT": 7200,
     "ACTION_REDIS_BULK_SIZE": 5,
@@ -79,3 +88,38 @@ for key, value in DEFAULT_CONFIG.items():
             elif isinstance(value, string_type):
                 set(key, str(env_value))
         except:pass
+
+def load_conf(filename):
+    try:
+        with open(filename, "r") as fp:
+            conf_content = StringIO("[global]\n" + fp.read())
+            cf = configparser.ConfigParser(allow_no_value=True)
+            cf._read(conf_content, filename)
+
+            for key, value in DEFAULT_CONFIG.items():
+                if key.startswith("STORE_"):
+                    conf_value = cf.get("store", key[6:].lower())
+                elif key.startswith("ACTION_"):
+                    conf_value = cf.get("action", key[7:].lower())
+                elif key.startswith("EXTENSION"):
+                    if key == "EXTENSIONS":
+                        conf_value = cf.get("extension", "extensions")
+                        if isinstance(conf_value, string_type):
+                            set(key, conf_value.split(";"))
+                            continue
+                    else:
+                        conf_value = cf.get("extension", key[10:].lower())
+                else:
+                    conf_value = cf.get("global", key.lower())
+
+                try:
+                    if isinstance(value, number_type):
+                        set(key, int(conf_value))
+                    elif isinstance(value, float):
+                        set(key, float(conf_value))
+                    elif isinstance(value, string_type):
+                        set(key, str(conf_value))
+                except:
+                    pass
+    except IOError:
+        raise ConfFileNotFoundError()

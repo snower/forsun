@@ -22,7 +22,7 @@ class HttpAction(Action):
         import forsun
         AsyncHTTPClient.configure(None,
                                   max_clients=config.get("ACTION_HTTP_MAX_CLIENTS", 64),
-                                  defaults={"user_agent": config.get("ACTION_HTTP_USER_AGENT", "forsun/%s" % forsun.version)
+                                  defaults={"user_agent": config.get("ACTION_HTTP_USER_AGENT") or ("forsun/%s" % forsun.version)
                                   })
 
     @gen.coroutine

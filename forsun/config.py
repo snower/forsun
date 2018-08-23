@@ -3,12 +3,8 @@
 # create by: snower
 
 import os
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from io import StringIO
 import configparser
-from .utils import string_type, number_type
+from .utils import unicode_type, string_type, number_type
 
 class ConfFileNotFoundError(Exception):
     pass
@@ -92,9 +88,12 @@ for key, value in DEFAULT_CONFIG.items():
 def load_conf(filename):
     try:
         with open(filename, "r") as fp:
-            conf_content = StringIO("[global]\n" + fp.read())
+            conf_content = fp.read()
+            if not isinstance(conf_content, unicode_type):
+                conf_content = conf_content.decode("utf-8")
+            conf_content = unicode_type("[global]\n") + conf_content 
             cf = configparser.ConfigParser(allow_no_value=True)
-            cf._read(conf_content, filename)
+            cf.read_string(conf_content)
 
             for key, value in DEFAULT_CONFIG.items():
                 if key.startswith("STORE_"):

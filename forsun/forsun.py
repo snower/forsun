@@ -45,7 +45,7 @@ class Forsun(object):
         ExtensionManager.uninit()
 
     def init_extensions(self):
-        extension_path = config.get("EXTENSION_PATH", [])
+        extension_path = config.get("EXTENSION_PATH", '')
         if extension_path:
             sys.path.append(extension_path)
             logging.info("register extension path %s", extension_path)

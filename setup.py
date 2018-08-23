@@ -31,6 +31,7 @@ setup(
         'msgpack>=0.5.1',
         'pytz>=2017.3',
         'tzlocal>=1.5.1',
+        'configparser>=3.5.0',
     ],
     extras_require = {
         'mysql': ['tormysql>=0.3.7'],

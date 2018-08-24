@@ -4,7 +4,7 @@
 
 import os
 import configparser
-from .utils import unicode_type, string_type, number_type
+from .utils import unicode_type, string_type, number_type, ensure_unicode
 
 class ConfFileNotFoundError(Exception):
     pass
@@ -16,7 +16,7 @@ DEFAULT_CONFIG = {
     "LOG_LEVEL": "ERROR",
     "LOG_FORMAT": "",
 
-    "BIND_ADDRESS": "0.0.0.0",
+    "BIND_ADDRESS": "127.0.0.1",
     "PORT": 6458,
 
     "HTTP_BIND": "",
@@ -88,10 +88,7 @@ for key, value in DEFAULT_CONFIG.items():
 def load_conf(filename):
     try:
         with open(filename, "r") as fp:
-            conf_content = fp.read()
-            if not isinstance(conf_content, unicode_type):
-                conf_content = conf_content.decode("utf-8")
-            conf_content = unicode_type("[global]\n") + conf_content 
+            conf_content = unicode_type("[global]\n") + ensure_unicode(fp.read())
             cf = configparser.ConfigParser(allow_no_value=True)
             cf.read_string(conf_content)
 

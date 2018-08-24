@@ -11,7 +11,7 @@ bind_address=127.0.0.1
 http_bind=
 
 # 日志文件地址
-log_file=/var/log/funsun.log
+log_file=/var/log/forsun.log
 
 # 日志级别
 log_level=INFO

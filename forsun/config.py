@@ -12,7 +12,7 @@ class ConfFileNotFoundError(Exception):
 __config = {}
 
 DEFAULT_CONFIG = {
-    "LOG_FILE": "/var/log/funsun.log",
+    "LOG_FILE": "/var/log/forsun.log",
     "LOG_LEVEL": "ERROR",
     "LOG_FORMAT": "",
 

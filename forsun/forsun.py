@@ -10,7 +10,7 @@ import traceback
 import threading
 from tornado.ioloop import IOLoop
 from tornado import gen
-from .servers import Server
+from .servers.server import Server
 from .plan import Plan
 from . import store
 from . import action

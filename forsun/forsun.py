@@ -36,13 +36,17 @@ class Forsun(object):
     @gen.coroutine
     def init(self):
         self.store = store.get_store()
+        logging.info("use store %s %s", config.get("STORE_DRIVER", "mem"), self.store)
+
         ExtensionManager.init()
         yield self.store.init()
+        logging.info("inited")
 
     @gen.coroutine
     def uninit(self):
         yield self.store.uninit()
         ExtensionManager.uninit()
+        logging.info("uninited")
 
     def init_extensions(self):
         extension_path = config.get("EXTENSION_PATH", '')
@@ -67,17 +71,17 @@ class Forsun(object):
     def retry_plan(self, plan):
         try:
             if "_:_retry" in plan.key:
-                keys = plan.key.split(":")
-                retry_count = int(keys[-1]) + 1
-                key = ":".join(keys[:-1]) + str(retry_count)
+                retry_count = plan.current_count
+                key = plan.key
             else:
                 retry_count = 1
-                key = plan.key + ":_:_retry:1"
+                key = plan.key + ":_:_retry"
 
             if retry_count <= config.get("ACTION_RETRY_MAX_COUNT", 0):
                 delay_seconds = config.get("ACTION_RETRY_DELAY_SECONDS", 3)
                 delay_time = delay_seconds + delay_seconds * config.get("ACTION_RETRY_DELAY_RATE", 1) * retry_count
                 delay_plan = Plan(key, delay_time, is_time_out=True, count=1, action=plan.action, params=plan.params, created_time=time.mktime(time.gmtime()))
+                delay_plan.current_count = retry_count
                 yield self.create_plan(delay_plan)
         except Exception as e:
             logging.error("plan %s retry error: %s\n%s", plan.key, e, traceback.format_exc())
@@ -141,6 +145,10 @@ class Forsun(object):
     def time_out(self, ts):
         if self.ioloop:
             self.ioloop.add_callback(self.check, ts)
+            if self.current_time - ts < 5:
+                logging.warning("timeout handle delayed %s %s", ts, self.current_time)
+        else:
+            logging.warning("timeout empty %s", ts)
 
     @gen.coroutine
     def create_plan(self, plan):
@@ -220,6 +228,7 @@ class Forsun(object):
             timer.stop()
             logging.info("stoped current time %s", timer.current())
 
+        logging.info("stoping current time %s", timer.current())
         if self.ioloop is None:
             self.read_event.set()
             timer.stop()

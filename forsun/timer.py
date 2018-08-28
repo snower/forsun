@@ -4,6 +4,7 @@
 
 import time
 import signal
+import traceback
 import logging
 try:
     from Queue import Queue, Empty
@@ -56,6 +57,11 @@ def loop():
                 callback(*args)
         except Empty:
             continue
+        except Exception as e:
+            logging.info("timer error %s\n%s", e, traceback.format_exc())
+
+            if __exit_callback and callable(__exit_callback):
+                __exit_callback()
 
 def current():
     return __current_time

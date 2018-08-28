@@ -145,7 +145,7 @@ class Forsun(object):
     def time_out(self, ts):
         if self.ioloop:
             self.ioloop.add_callback(self.check, ts)
-            if self.current_time - ts < 5:
+            if self.current_time and self.current_time - ts < 5:
                 logging.warning("timeout handle delayed %s %s", ts, self.current_time)
         else:
             logging.warning("timeout empty %s", ts)

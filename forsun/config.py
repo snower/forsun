@@ -22,6 +22,7 @@ DEFAULT_CONFIG = {
     "HTTP_BIND": "",
 
     "STORE_DRIVER": "mem",
+    "STORE_STATUS_EXPRIED": 0,
 
     "STORE_MEM_STORE_FILE": "/tmp/forsun.session",
 

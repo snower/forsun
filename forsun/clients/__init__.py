@@ -52,6 +52,9 @@ class ThriftClient(object):
     def get_keys(self, prefix=''):
         return self.execute("getKeys", prefix)
 
+    def info(self):
+        return self.execute("info")
+
     def __del__(self):
         if self.client:
             self.transport.close()
@@ -102,4 +105,9 @@ class TorThriftClient(object):
     @gen.coroutine
     def get_keys(self, prefix=''):
         res = yield self.pool.getKeys(prefix)
+        raise gen.Return(res)
+
+    @gen.coroutine
+    def info(self):
+        res = yield self.pool.info()
         raise gen.Return(res)

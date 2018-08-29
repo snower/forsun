@@ -24,6 +24,7 @@ class HttpAction(Action):
                                   max_clients=config.get("ACTION_HTTP_MAX_CLIENTS", 64),
                                   defaults={"user_agent": config.get("ACTION_HTTP_USER_AGENT") or ("forsun/%s" % forsun.version)
                                   })
+        self.configed = True
 
     @gen.coroutine
     def execute(self, *args, **kwargs):

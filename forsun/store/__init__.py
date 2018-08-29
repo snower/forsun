@@ -41,3 +41,6 @@ def get_store(*args, **kwargs):
     if driver not in __stores:
         raise UnknownStoreDriverError()
     return __stores[driver](*args, **kwargs)
+
+def get_store_names():
+    return __stores.keys()

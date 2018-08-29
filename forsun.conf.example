@@ -26,6 +26,9 @@ log_format=
 # 持久化类型，支持mem和redis
 driver=mem
 
+# 转态保留时间
+status_expried = 0
+
 # 内存服务进程退出时计时器暂存区
 mem_store_file=/tmp/forsun.session
 

@@ -31,5 +31,6 @@ service Forsun{
     list<ForsunPlan> getCurrent(),
     list<ForsunPlan> getTime(1:i32 timestamp),
     list<string> getKeys(1:string prefix),
-    void forsun_call(1:string key, 2:i32 ts, 3:map<string, string> params)
+    void forsun_call(1:string key, 2:i32 ts, 3:map<string, string> params),
+    map<string, string> info()
 }

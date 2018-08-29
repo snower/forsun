@@ -39,19 +39,27 @@ class Store(object):
         raise gen.Return(plan)
 
     @gen.coroutine
-    def add_time_plan(self, plan):
+    def add_time_plan(self, next_time, key):
         raise NotImplementedError()
 
     @gen.coroutine
-    def get_time_plan(self, ts):
+    def get_time_plan(self, next_time, key):
         raise NotImplementedError()
 
     @gen.coroutine
-    def remove_time_plan(self, plan):
+    def set_time_plan(self, next_time, key, status):
         raise NotImplementedError()
 
     @gen.coroutine
-    def delete_time_plan(self, ts):
+    def remove_time_plan(self, next_time, key):
+        raise NotImplementedError()
+
+    @gen.coroutine
+    def get_time_plans(self, ts):
+        raise NotImplementedError()
+
+    @gen.coroutine
+    def delete_time_plans(self, ts):
         raise NotImplementedError()
 
     @gen.coroutine

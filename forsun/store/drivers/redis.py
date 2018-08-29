@@ -133,6 +133,9 @@ class RedisClient(object):
     def hset(self, key, field, value, **kwargs):
         return self.execute_command('HSET', key, field, value, **kwargs)
 
+    def hget(self, key, field, **kwargs):
+        return self.execute_command('HGET', key, field, **kwargs)
+
     def hdel(self, key, *fields, **kwargs):
         return self.execute_command('HDEL', key, *fields, **kwargs)
 
@@ -194,14 +197,36 @@ class RedisStore(Store):
         raise gen.Return(res)
 
     @gen.coroutine
-    def add_time_plan(self, plan):
-        key = "".join([self.prefix, ":time:", str(plan.next_time)])
-        res = yield self.db.hset(key, plan.key, '0')
-        yield self.db.expire(key, plan.next_time - timer.current() + config.get("STORE_REDIS_PLANTIME_EXPRIED", 604800))
+    def add_time_plan(self, next_time, key):
+        key = "".join([self.prefix, ":time:", str(next_time)])
+        res = yield self.db.hset(key, key, '0')
+        yield self.db.expire(key, next_time - timer.current() + config.get("STORE_REDIS_PLANTIME_EXPRIED", 604800))
         raise gen.Return(res)
 
     @gen.coroutine
-    def get_time_plan(self, ts):
+    def get_time_plan(self, next_time, key):
+        key = "".join([self.prefix, ":time:", str(next_time)])
+        res = yield self.db.hget(key, key)
+        try:
+            status = int(res)
+        except:
+            status = 0
+        raise gen.Return(status)
+
+    @gen.coroutine
+    def set_time_plan(self, next_time, key, status):
+        key = "".join([self.prefix, ":time:", str(next_time)])
+        res = yield self.db.hset(key, key, str(status))
+        yield self.db.expire(key, next_time - timer.current() + config.get("STORE_REDIS_PLANTIME_EXPRIED", 604800))
+        raise gen.Return(res)
+
+    @gen.coroutine
+    def remove_time_plan(self, next_time, key):
+        res = yield self.db.hdel("".join([self.prefix, ":time:", str(next_time)]), key)
+        raise gen.Return(res)
+
+    @gen.coroutine
+    def get_time_plans(self, ts):
         res = yield self.db.hgetall("".join([self.prefix, ":time:", str(ts)]))
         if not res:
             raise gen.Return([])
@@ -211,12 +236,7 @@ class RedisStore(Store):
             raise gen.Return([res[i] for i in range(0, len(res), 2)])
 
     @gen.coroutine
-    def remove_time_plan(self, plan):
-        res = yield self.db.hdel("".join([self.prefix, ":time:", str(plan.next_time)]), plan.key)
-        raise gen.Return(res)
-
-    @gen.coroutine
-    def delete_time_plan(self, ts):
+    def delete_time_plans(self, ts):
         res = yield self.db.delete("".join([self.prefix, ":time:", str(ts)]))
         raise gen.Return(res)
 

@@ -7,6 +7,7 @@ import traceback
 from tornado import gen
 from .action import Action
 from ..error import ActionExecuteRetry
+from ..status import forsun_status
 
 __drivers = None
 
@@ -75,13 +76,22 @@ def get_driver(action):
         raise UnknownActionError()
     return driver
 
+def get_driver_names():
+    if __drivers is None:
+        return []
+    return __drivers.keys()
+
 @gen.coroutine
 def execute(ts, plan):
     driver_cls = get_driver(plan.action)
     driver = driver_cls(ts, plan, plan.action, plan.params)
     try:
         yield driver.execute()
+        succed = True
     except ActionExecuteRetry as e:
         raise e
     except Exception as e:
-        logging.error("action %s %s %s execute error: %s\n%s", driver.action, driver.ts, driver.params, e, traceback.format_exc())
+        forsun_status.action_executed_error_count += 1
+        logging.error("action %s %s %s %s execute error: %s\n%s", plan.key, driver.action, driver.ts, driver.params, e, traceback.format_exc())
+        succed = False
+    raise gen.Return(succed)

@@ -5,15 +5,24 @@
 import logging
 import threading
 from tornado.ioloop import IOLoop, asyncio
-from tornado.httpserver import HTTPServer
 from thrift.protocol.TBinaryProtocol import TBinaryProtocolAcceleratedFactory
 from torthrift.transport import TIOStreamTransportFactory
-from torthrift.server import TTornadoServer
+from torthrift.server import TTornadoServer as BaseTTornadoServer
 from .processor.Forsun import Processor
 from .handler import Handler
-from .http import Application
+from .http import HTTPServer, Application
 from .. import timer
+from ..status import forsun_status
 from .. import config
+
+class TTornadoServer(BaseTTornadoServer):
+    def process(self, *args, **kwargs):
+        try:
+            forsun_status.connecting_count += 1
+            forsun_status.connected_count += 1
+            return super(TTornadoServer, self).process(*args, **kwargs)
+        finally:
+            forsun_status.connecting_count -= 1
 
 class Server(object):
     def __init__(self, forsun):

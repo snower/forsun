@@ -137,6 +137,57 @@ def cmd_set(key, seconds, minutes, hours, days, months, weeks, action, params_st
 
     print_plan(plan)
 
+def cmd_info(*args):
+    info = client.info()
+
+    keys = [
+        "python_version",
+        "forsun_version",
+        "start_time",
+        "cpu_user",
+        "cpu_system",
+        "mem_rss",
+        "mem_vms",
+        "mem_pfaults",
+        "mem_pageins",
+        "",
+
+        "stores",
+        "actions",
+        "",
+
+        "connecting_count",
+        "connected_count",
+        "requesting_count",
+        "requested_count",
+        "requested_error_count",
+        "",
+
+        "http_connecting_count",
+        "http_connected_count",
+        "http_requesting_count",
+        "http_requested_count",
+        "http_requested_error_count",
+        "",
+
+        "created_count",
+        "create_timeouted_count",
+        "removed_count",
+        "plan_count",
+        "timeout_handling_count",
+        "timeout_handled_count",
+        "",
+
+        "action_executing_count",
+        "action_executed_count",
+        "action_executed_error_count",
+        "action_retried_count",
+        "",
+    ]
+
+    for key in keys:
+        print((key + ":\t" + info.get(key)) if key else "")
+
 def main():
     global client
 
@@ -160,6 +211,7 @@ def main():
         'get': cmd_get,
         'rm': cmd_rm,
         'set': cmd_set,
+        'info': cmd_info,
     }
 
     if args.execute or args.cmd:

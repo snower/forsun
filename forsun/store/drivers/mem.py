@@ -93,22 +93,33 @@ class MemStore(Store):
         raise gen.Return(None)
 
     @gen.coroutine
-    def add_time_plan(self, plan):
-        self.time_plans[plan.next_time][plan.key] = plan
-        raise gen.Return(plan)
+    def add_time_plan(self, next_time, key):
+        self.time_plans[next_time][key] = 0
+        raise gen.Return(True)
 
     @gen.coroutine
-    def get_time_plan(self, ts):
-        raise gen.Return(self.time_plans[ts].keys())
+    def get_time_plan(self, next_time, key):
+        status = self.time_plans[next_time][key]
+        raise gen.Return(status)
 
     @gen.coroutine
-    def remove_time_plan(self, plan):
-        if plan.key in self.time_plans[plan.next_time]:
-            raise gen.Return(self.time_plans[plan.next_time].pop(plan.key))
+    def set_time_plan(self, next_time, key, status):
+        last_status = self.time_plans[next_time][key]
+        self.time_plans[next_time][key] = status
+        raise gen.Return(last_status)
+
+    @gen.coroutine
+    def remove_time_plan(self, next_time, key):
+        if key in self.time_plans[next_time]:
+            raise gen.Return(self.time_plans[next_time].pop(key))
         raise gen.Return(None)
 
     @gen.coroutine
-    def delete_time_plan(self, ts):
+    def get_time_plans(self, ts):
+        raise gen.Return(self.time_plans[ts].keys())
+
+    @gen.coroutine
+    def delete_time_plans(self, ts):
         if ts in self.time_plans:
             raise gen.Return(self.time_plans.pop(ts))
         raise gen.Return(None)

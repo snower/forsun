@@ -107,7 +107,8 @@ class ForsunPlan(object):
     """
 
 
-    def __init__(self, is_time_out=None, key=None, second=None, minute=-1, hour=-1, day=-1, month=-1, week=-1, next_time=None, status=0, count=0, current_count=0, last_timeout=0, action="shell", params={}):
+    def __init__(self, is_time_out=None, key=None, second=None, minute=-1, hour=-1, day=-1, month=-1, week=-1, next_time=None, status=0, count=0, current_count=0, last_timeout=0, action="shell", params={
+    },):
         self.is_time_out = is_time_out
         self.key = key
         self.second = second

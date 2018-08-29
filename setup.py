@@ -32,6 +32,7 @@ setup(
         'pytz>=2017.3',
         'tzlocal>=1.5.1',
         'configparser>=3.5.0',
+        'psutil>=5.4.7',
     ],
     extras_require = {
         'mysql': ['tormysql>=0.3.7'],

@@ -7,14 +7,17 @@ import json
 from tornado import gen
 from tornado.web import RequestHandler as BaseRequestHandler
 from tornado.web import HTTPError
+from tornado.httpserver import HTTPServer as BaseHTTPServer
 from tornado.web import Application as BaseApplication
 from ..plan import Plan
 from ..utils import parse_cmd, unicode_type
+from ..status import forsun_status
 from ..error import ForsunPlanError, RequiredArgumentError, NotFoundPlanError
 
 def execute(func):
     @gen.coroutine
     def _(self, *args, **kwargs):
+        forsun_status.http_requesting_count += 1
         try:
             result = yield func(self, *args, **kwargs)
             data = {
@@ -29,11 +32,15 @@ def execute(func):
                 "data": {}
             }
         except Exception as e:
+            forsun_status.http_requested_error_count += 1
             data = {
                 "errcode": 1001,
                 "errmsg": u"未知错误",
                 "data": {}
             }
+        finally:
+            forsun_status.http_requested_count += 1
+            forsun_status.http_requesting_count -= 1
         self.finish(data)
     return _
 
@@ -255,6 +262,25 @@ class KeysRequestHandler(RequestHandler):
         keys = yield self.application.forsun.get_keys(prefix)
         raise gen.Return(keys)
 
+class InfoRequestHandler(RequestHandler):
+    @execute
+    @gen.coroutine
+    def get(self):
+        info =  forsun_status.get_info()
+        raise gen.Return(info)
+
+class HTTPServer(BaseHTTPServer):
+    def handle_stream(self, *args, **kwargs):
+        r = super(HTTPServer, self).handle_stream(*args, **kwargs)
+        forsun_status.http_connecting_count+=1
+        forsun_status.http_connected_count += 1
+        return r
+
+    def on_close(self, *args, **kwargs):
+        r = super(HTTPServer, self).on_close(*args, **kwargs)
+        forsun_status.http_connecting_count -= 1
+        return r
+
 class Application(BaseApplication):
     def __init__(self, forsun, *args, **kwargs):
         self.forsun = forsun
@@ -264,6 +290,7 @@ class Application(BaseApplication):
             (r'^/v1/plan$', PlanRequestHandler),
             (r'^/v1/time$', TimeRequestHandler),
             (r'^/v1/keys$', KeysRequestHandler),
+            (r'^/v1/info$', InfoRequestHandler),
         )
 
         super(Application, self).__init__(urls, *args, **kwargs)

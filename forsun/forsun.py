@@ -19,6 +19,7 @@ from . import log
 from .extension import ExtensionManager
 from . import config
 from . import error
+from .status import forsun_status
 
 class Forsun(object):
     def __init__(self):
@@ -83,17 +84,32 @@ class Forsun(object):
                 delay_plan = Plan(key, delay_time, is_time_out=True, count=1, action=plan.action, params=plan.params, created_time=time.mktime(time.gmtime()))
                 delay_plan.current_count = retry_count
                 yield self.create_plan(delay_plan)
+                forsun_status.action_retried_count += 1
         except Exception as e:
             logging.error("plan %s retry error: %s\n%s", plan.key, e, traceback.format_exc())
 
     @gen.coroutine
-    def execute_action(self, ts, plan):
+    def execute_action(self, ts, plan, status_expried):
         try:
-            yield action.execute(ts, plan)
+            forsun_status.action_executing_count += 1
+            succed = yield action.execute(ts, plan)
         except error.ActionExecuteRetry:
+            forsun_status.action_executed_error_count += 1
             yield self.retry_plan(plan)
+            succed = False
         except Exception as e:
+            forsun_status.action_executed_error_count += 1
             logging.error("plan %s action execute error: %s\n%s", plan.key, e, traceback.format_exc())
+            succed = False
+        finally:
+            forsun_status.action_executing_count -= 1
+            forsun_status.action_executed_count += 1
+
+        if status_expried:
+            try:
+                yield self.store.set_time_plan(ts, plan.key, 1 if succed else -1)
+            except Exception as e:
+                logging.error("save status error: %s", e)
 
     @gen.coroutine
     def check_plan(self, ts, plan):
@@ -101,31 +117,64 @@ class Forsun(object):
         plan.current_count += 1
         plan.next_time = plan.get_next_time()
         if plan.next_time:
-            yield self.store.add_time_plan(plan)
+            yield self.store.add_time_plan(plan.next_time, plan.key)
             yield self.store.set_plan(plan)
-        else:
-            yield self.store.remove_plan(plan.key)
-            logging.debug("plan finish %s", plan.key)
 
     @gen.coroutine
-    def handler_plan(self, ts, key):
+    def handler_plan_expried(self, ts, key):
+        try:
+            plan = yield self.store.get_plan(key)
+            if plan and (not plan.next_time or plan.next_time == ts):
+                yield self.store.remove_plan(plan.key)
+                forsun_status.plan_count -= 1
+                logging.debug("plan finish %s", plan.key)
+        except Exception as e:
+            logging.error("handler plan expried error: %s %s %s", ts, key, e)
+
+    @gen.coroutine
+    def handler_expried(self, ts):
+        try:
+            plans = yield self.store.get_time_plans(ts)
+            for key in plans:
+                self.ioloop.add_callback(self.handler_plan, ts, key)
+            yield self.store.delete_time_plans(ts)
+        except Exception as e:
+            logging.error("handler ts expried error: %s %s", ts, e)
+
+    @gen.coroutine
+    def handler_plan(self, ts, key, status_expried):
         try:
             plan = yield self.store.get_plan(key)
             if plan:
                 yield self.check_plan(ts, plan)
-                self.ioloop.add_callback(self.execute_action, ts, plan)
+                if status_expried == 0 and not plan.next_time:
+                    yield self.store.remove_plan(plan.key)
+                    forsun_status.plan_count -= 1
+                    logging.debug("plan finish %s", plan.key)
+
+                self.ioloop.add_callback(self.execute_action, ts, plan, status_expried)
         except Exception as e:
             logging.error("handler plan error: %s %s %s", ts, key, e)
 
     @gen.coroutine
     def handler(self, ts):
         try:
-            plans = yield self.store.get_time_plan(ts)
+            status_expried = config.get("STORE_STATUS_EXPRIED", 0)
+
+            forsun_status.timeout_handling_count += 1
+            plans = yield self.store.get_time_plans(ts)
             for key in plans:
-                self.ioloop.add_callback(self.handler_plan, ts, key)
-            yield self.store.delete_time_plan(ts)
+                self.ioloop.add_callback(self.handler_plan, ts, key, status_expried)
+
+            if status_expried == 0:
+                yield self.store.delete_time_plans(ts)
+            else:
+                yield self.handler_expried(ts - status_expried)
         except Exception as e:
             logging.error("handler ts error: %s %s", ts, e)
+        finally:
+            forsun_status.timeout_handling_count -= 1
+            forsun_status.timeout_handled_count += 1
 
     @gen.coroutine
     def check(self, ts):
@@ -154,7 +203,7 @@ class Forsun(object):
     def create_plan(self, plan):
         oplan = yield self.store.get_plan(plan.key)
         if oplan:
-            yield self.store.remove_time_plan(oplan)
+            yield self.store.remove_time_plan(oplan.next_time, oplan.key)
             yield self.store.remove_plan(oplan.key)
         if not plan.next_time:
             raise error.WillNeverArriveTimeError()
@@ -164,8 +213,9 @@ class Forsun(object):
         except action.UnknownActionError:
             raise error.UnknownActionError()
 
-        yield self.store.add_time_plan(plan)
+        yield self.store.add_time_plan(plan.next_time, plan.key)
         res = yield self.store.set_plan(plan)
+        forsun_status.plan_count += 1
         if not res:
             raise error.StorePlanError
 
@@ -175,8 +225,9 @@ class Forsun(object):
         if not oplan:
             raise error.NotFoundPlanError()
 
-        yield self.store.remove_time_plan(oplan)
+        yield self.store.remove_time_plan(oplan.next_time, oplan.key)
         yield self.store.remove_plan(oplan.key)
+        forsun_status.plan_count -= 1
         raise gen.Return(oplan)
 
     @gen.coroutine
@@ -184,6 +235,9 @@ class Forsun(object):
         plan = yield self.store.get_plan(key)
         if not plan:
             raise error.NotFoundPlanError()
+
+        status = yield self.store.get_time_plan(plan.last_timeout, key)
+        plan.status = status
         raise gen.Return(plan)
 
     @gen.coroutine
@@ -197,11 +251,14 @@ class Forsun(object):
 
     @gen.coroutine
     def get_time_plans(self, ts):
-        keys = yield self.store.get_time_plan(ts)
+        keys = yield self.store.get_time_plans(ts)
         plans = []
         for key in keys:
             plan = yield self.store.get_plan(key)
             if plan:
+                status = yield self.store.get_time_plan(plan.last_timeout, plan.key)
+                plan.status = status
+
                 plans.append(plan)
         raise gen.Return(plans)
 

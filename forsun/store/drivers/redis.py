@@ -198,15 +198,15 @@ class RedisStore(Store):
 
     @gen.coroutine
     def add_time_plan(self, next_time, key):
-        key = "".join([self.prefix, ":time:", str(next_time)])
-        res = yield self.db.hset(key, key, '0')
-        yield self.db.expire(key, next_time - timer.current() + config.get("STORE_REDIS_PLANTIME_EXPRIED", 604800))
+        time_key = "".join([self.prefix, ":time:", str(next_time)])
+        res = yield self.db.hset(time_key, key, '0')
+        yield self.db.expire(time_key, next_time - timer.current() + config.get("STORE_REDIS_PLANTIME_EXPRIED", 604800))
         raise gen.Return(res)
 
     @gen.coroutine
     def get_time_plan(self, next_time, key):
-        key = "".join([self.prefix, ":time:", str(next_time)])
-        res = yield self.db.hget(key, key)
+        time_key = "".join([self.prefix, ":time:", str(next_time)])
+        res = yield self.db.hget(time_key, key)
         try:
             status = int(res)
         except:
@@ -215,9 +215,9 @@ class RedisStore(Store):
 
     @gen.coroutine
     def set_time_plan(self, next_time, key, status):
-        key = "".join([self.prefix, ":time:", str(next_time)])
-        res = yield self.db.hset(key, key, str(status))
-        yield self.db.expire(key, next_time - timer.current() + config.get("STORE_REDIS_PLANTIME_EXPRIED", 604800))
+        time_key = "".join([self.prefix, ":time:", str(next_time)])
+        res = yield self.db.hset(time_key, key, str(status))
+        yield self.db.expire(time_key, next_time - timer.current() + config.get("STORE_REDIS_PLANTIME_EXPRIED", 604800))
         raise gen.Return(res)
 
     @gen.coroutine

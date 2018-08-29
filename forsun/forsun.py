@@ -124,10 +124,13 @@ class Forsun(object):
     def handler_plan_expried(self, ts, key):
         try:
             plan = yield self.store.get_plan(key)
-            if plan and (not plan.next_time or plan.next_time == ts):
-                yield self.store.remove_plan(plan.key)
-                forsun_status.plan_count -= 1
-                logging.debug("plan finish %s", plan.key)
+            if plan:
+                if (not plan.next_time or plan.next_time == ts):
+                    yield self.store.remove_plan(plan.key)
+                    forsun_status.plan_count -= 1
+                    logging.debug("plan finish %s", plan.key)
+            else:
+                logging.warning("handler plan: %s %s not found", ts, key)
         except Exception as e:
             logging.error("handler plan expried error: %s %s %s", ts, key, e)
 
@@ -153,6 +156,8 @@ class Forsun(object):
                     logging.debug("plan finish %s", plan.key)
 
                 self.ioloop.add_callback(self.execute_action, ts, plan, status_expried)
+            else:
+                logging.warning("handler plan: %s %s not found", ts, key)
         except Exception as e:
             logging.error("handler plan error: %s %s %s", ts, key, e)
 

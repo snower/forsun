@@ -148,8 +148,6 @@ def cmd_info(*args):
         "cpu_system",
         "mem_rss",
         "mem_vms",
-        "mem_pfaults",
-        "mem_pageins",
         "",
 
         "stores",

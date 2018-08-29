@@ -58,8 +58,6 @@ class ForsunStatus(object):
             "cpu_system": str(cpu_times.system),
             "mem_rss": str(memory_info.rss),
             "mem_vms": str(memory_info.vms),
-            "mem_pfaults": str(memory_info.pfaults),
-            "mem_pageins": str(memory_info.pageins),
             "stores": "; ".join(get_store_names()),
             "actions": "; ".join(get_driver_names()),
 

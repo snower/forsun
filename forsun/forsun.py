@@ -136,7 +136,7 @@ class Forsun(object):
         try:
             plans = yield self.store.get_time_plans(ts)
             for key in plans:
-                self.ioloop.add_callback(self.handler_plan, ts, key)
+                self.ioloop.add_callback(self.handler_plan_expried, ts, key)
             yield self.store.delete_time_plans(ts)
         except Exception as e:
             logging.error("handler ts expried error: %s %s", ts, e)

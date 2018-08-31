@@ -186,13 +186,15 @@ class Forsun(object):
         try:
             if self.current_time is None:
                 self.current_time = yield self.store.get_current()
-                logging.info("start by last time %s current time %s", self.current_time, timer.current())
+                logging.info("start by last time %s current time %s", self.current_time, ts)
+
                 while self.current_time > 0 and self.current_time < ts:
-                    yield self.handler(self.current_time)
+                    self.ioloop.add_callback(self.handler, self.current_time)
                     self.current_time += 1
+
             self.current_time = ts
             yield self.store.set_current(self.current_time)
-            yield self.handler(ts)
+            self.ioloop.add_callback(self.handler, ts)
         except Exception as e:
             logging.error("check error: %s %s", ts, e)
 

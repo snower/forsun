@@ -6,28 +6,32 @@ import time
 import signal
 import traceback
 import logging
-try:
-    from Queue import Queue, Empty
-except ImportError:
-    from queue import Queue, Empty
+import threading
+from queue import deque
 
 __time_out_callback = None
 __exit_callback = None
-__queues = Queue()
+__queues = deque()
+__queue_ready_event = threading.Event()
 __is_stop = False
 __current_time = int(time.mktime(time.gmtime()))
 
 def exit_handler(signum, frame):
-    __queues.put((__exit_callback, tuple()), False)
+    __queues.append((__exit_callback, tuple()))
+    if not __queue_ready_event.is_set():
+        __queue_ready_event.set()
 
 def handler(signum, frame):
-    __queues.put((__time_out_callback, (int(time.mktime(time.gmtime())),)), False)
+    __queues.append((__time_out_callback, (int(time.mktime(time.gmtime())),)))
+    if not __queue_ready_event.is_set():
+        __queue_ready_event.set()
 
 def reset():
-    global __time_out_callback, __exit_callback, __queues, __is_stop, __current_time
+    global __time_out_callback, __exit_callback, __queues, __queue_ready_event, __is_stop, __current_time
     __time_out_callback = None
     __exit_callback = None
-    __queues = Queue()
+    __queues = deque()
+    __queue_ready_event = threading.Event()
     __is_stop = False
     __current_time = int(time.mktime(time.gmtime()))
 
@@ -52,11 +56,20 @@ def loop():
     logging.info("timer ready")
     while not __is_stop:
         try:
-            callback, args = __queues.get(True, 1)
-            if callback:
-                callback(*args)
-        except Empty:
-            continue
+            if __queues:
+                callback, args = __queues.popleft()
+                if callback and callable(callback):
+                    callback(*args)
+                continue
+
+            if __queue_ready_event.is_set():
+                __queue_ready_event.clear()
+
+            if not __queues:
+                __queue_ready_event.wait(1)
+        except KeyboardInterrupt:
+            if __exit_callback and callable(__exit_callback):
+                __exit_callback()
         except Exception as e:
             logging.info("timer error %s\n%s", e, traceback.format_exc())
 

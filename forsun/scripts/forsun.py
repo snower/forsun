@@ -41,7 +41,7 @@ def print_plan(plan):
 
     params = ";".join(["%s=%s" % (key, ("'%s'" % value) if isinstance(value, string_type) else value) for key, value in plan.params.items()])
 
-    print(datetime.datetime.fromtimestamp(plan.next_time).replace(tzinfo=pytz.UTC).astimezone(tzlocal.get_localzone()).strftime("%Y-%m-%d %H:%M:%S"),
+    print(str(datetime.datetime.fromtimestamp(plan.next_time).replace(tzinfo=pytz.UTC).astimezone(tzlocal.get_localzone())),
           plan.key, " ".join(times), plan.action, '"' + params + '"')
 
 def cmd_help(*args):
@@ -148,6 +148,7 @@ def cmd_info(*args):
         "cpu_system",
         "mem_rss",
         "mem_vms",
+        "current_time",
         "",
 
         "stores",
@@ -184,6 +185,20 @@ def cmd_info(*args):
     ]
 
     for key in keys:
+        if key in ("mem_rss", "mem_vms"):
+            value, unit = int(info.get(key), 0), "B"
+            for unit in ["B", "K", "M", "G"]:
+                if value < 1024:
+                    break
+                value = float(value) / 1024.0
+
+            print(key + ":\t" + ("%.2f" % value) + unit)
+            continue
+
+        if key == "current_time":
+            print(key + ":\t" + str(datetime.datetime.fromtimestamp(int(info.get(key), 0)).replace(tzinfo=pytz.UTC).astimezone(tzlocal.get_localzone())))
+            continue
+
         print((key + ":\t" + info.get(key)) if key else "")
 
 def main():

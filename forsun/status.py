@@ -45,6 +45,7 @@ class ForsunStatus(object):
     def get_info(self):
         from .store import get_store_names
         from .action import get_driver_names
+        from .timer import current
 
         process = psutil.Process(os.getpid())
         cpu_times = process.cpu_times()
@@ -58,8 +59,9 @@ class ForsunStatus(object):
             "cpu_system": str(cpu_times.system),
             "mem_rss": str(memory_info.rss),
             "mem_vms": str(memory_info.vms),
-            "stores": "; ".join(get_store_names()),
-            "actions": "; ".join(get_driver_names()),
+            "current_time": current(),
+            "stores": ";".join(get_store_names()),
+            "actions": ";".join(get_driver_names()),
 
             "connecting_count": str(self.connecting_count),
             "connected_count": str(self.connected_count),

@@ -22,7 +22,9 @@ def exit_handler(signum, frame):
         __queue_ready_event.set()
 
 def handler(signum, frame):
-    __queues.append((__time_out_callback, (int(time.mktime(time.gmtime())),)))
+    global __current_time
+    __current_time = int(time.mktime(time.gmtime()))
+    __queues.append((__time_out_callback, (__current_time,)))
     if not __queue_ready_event.is_set():
         __queue_ready_event.set()
 

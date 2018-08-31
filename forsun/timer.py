@@ -7,7 +7,7 @@ import signal
 import traceback
 import logging
 import threading
-from queue import deque
+from collections import deque
 
 __time_out_callback = None
 __exit_callback = None

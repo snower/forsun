@@ -15,6 +15,7 @@ __queues = deque()
 __queue_ready_event = threading.Event()
 __is_stop = False
 __current_time = int(time.mktime(time.gmtime()))
+__time_offset = int(time.time() - __current_time)
 
 def exit_handler(signum, frame):
     __queues.append((__exit_callback, tuple()))
@@ -23,7 +24,7 @@ def exit_handler(signum, frame):
 
 def handler(signum, frame):
     global __current_time
-    __current_time = int(time.mktime(time.gmtime()))
+    __current_time = int(time.time() - __time_offset)
     __queues.append((__time_out_callback, (__current_time,)))
     if not __queue_ready_event.is_set():
         __queue_ready_event.set()
@@ -68,7 +69,7 @@ def loop():
                 __queue_ready_event.clear()
 
             if not __queues:
-                __queue_ready_event.wait(1)
+                __queue_ready_event.wait(0.7)
         except KeyboardInterrupt:
             if __exit_callback and callable(__exit_callback):
                 __exit_callback()

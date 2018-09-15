@@ -5,9 +5,12 @@
 from logging import config as logging_config
 from . import config
 
+
 def init_config():
     log_file = config.get("LOG_FILE", "/var/log/funsun.log")
     log_level = config.get("LOG_LEVEL", "INFO")
+    log_format = config.get("LOG_FORMAT", "%(asctime)s %(process)d %(levelname)s %(message)s")
+    log_rotate = config.get("LOG_ROTATE", "")
 
     if log_file == '-':
         main_handler = {
@@ -16,18 +19,44 @@ def init_config():
             'formatter': 'main',
         }
     else:
-        main_handler = {
-            'level': log_level,
-            'class': 'logging.FileHandler',
-            'formatter': 'main',
-            'filename': log_file,
-        }
+        if log_rotate == "DAY":
+            main_handler = {
+                'level': log_level,
+                'class': 'logging.handlers.TimedRotatingFileHandler',
+                'formatter': 'main',
+                'filename': log_file,
+                'when': "MIDNIGHT",
+            }
+        else:
+            units = {"B": 1, "K": 1024, "M": 1024 * 1024, "G": 1024 * 1024 * 1024}
+            file_bytes = 0
+
+            if log_rotate and log_rotate[-1] in units:
+                try:
+                    file_bytes = int(float(log_rotate[:-1]) * units[log_rotate[-1]])
+                except: pass
+
+            if file_bytes:
+                main_handler = {
+                    'level': log_level,
+                    'class': 'logging.handlers.RotatingFileHandler',
+                    'formatter': 'main',
+                    'filename': log_file,
+                    'maxBytes': file_bytes,
+                }
+            else:
+                main_handler = {
+                    'level': log_level,
+                    'class': 'logging.FileHandler',
+                    'formatter': 'main',
+                    'filename': log_file,
+                }
 
     log_config={
         "version":1,
         "formatters": {
             "main": {
-                "format":'%(asctime)s %(process)d %(levelname)s %(message)s',
+                "format": log_format,
             }
         },
         "handlers": {

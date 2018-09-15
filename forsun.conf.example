@@ -19,6 +19,10 @@ log_level=INFO
 # 日志输出格式化信息
 log_format=
 
+# 日志转存
+# DAY 每日一个文件 100B(K, M, G) 固定大小文件
+log_rotate=
+
 
 # 持久化存储设置
 [store]

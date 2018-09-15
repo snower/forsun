@@ -14,7 +14,8 @@ __config = {}
 DEFAULT_CONFIG = {
     "LOG_FILE": "/var/log/forsun.log",
     "LOG_LEVEL": "ERROR",
-    "LOG_FORMAT": "",
+    "LOG_FORMAT": "%(asctime)s %(process)d %(levelname)s %(message)s",
+    "LOG_ROTATE": "",
 
     "BIND_ADDRESS": "127.0.0.1",
     "PORT": 6458,

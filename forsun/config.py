@@ -96,29 +96,32 @@ def load_conf(filename):
             cf.read_string(conf_content)
 
             for key, value in DEFAULT_CONFIG.items():
-                if key.startswith("STORE_"):
-                    conf_value = cf.get("store", key[6:].lower())
-                elif key.startswith("ACTION_"):
-                    conf_value = cf.get("action", key[7:].lower())
-                elif key.startswith("EXTENSION"):
-                    if key == "EXTENSIONS":
-                        conf_value = cf.get("extension", "extensions")
-                        if isinstance(conf_value, string_type):
-                            set(key, conf_value.split(";"))
-                            continue
-                    else:
-                        conf_value = cf.get("extension", key[10:].lower())
-                else:
-                    conf_value = cf.get("global", key.lower())
-
                 try:
-                    if isinstance(value, number_type):
-                        set(key, int(conf_value))
-                    elif isinstance(value, float):
-                        set(key, float(conf_value))
-                    elif isinstance(value, string_type):
-                        set(key, str(conf_value))
-                except:
-                    pass
+                    if key.startswith("STORE_"):
+                        conf_value = cf.get("store", key[6:].lower())
+                    elif key.startswith("ACTION_"):
+                        conf_value = cf.get("action", key[7:].lower())
+                    elif key.startswith("EXTENSION"):
+                        if key == "EXTENSIONS":
+                            conf_value = cf.get("extension", "extensions")
+                            if isinstance(conf_value, string_type):
+                                set(key, conf_value.split(";"))
+                                continue
+                        else:
+                            conf_value = cf.get("extension", key[10:].lower())
+                    else:
+                        conf_value = cf.get("global", key.lower())
+
+                    try:
+                        if isinstance(value, number_type):
+                            set(key, int(conf_value))
+                        elif isinstance(value, float):
+                            set(key, float(conf_value))
+                        elif isinstance(value, string_type):
+                            set(key, str(conf_value))
+                    except:
+                        pass
+                except (configparser.NoOptionError, configparser.NoSectionError):
+                    continue
     except IOError:
         raise ConfFileNotFoundError()

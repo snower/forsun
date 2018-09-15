@@ -23,6 +23,10 @@ log_format=
 # DAY 每日一个文件 100B(K, M, G) 固定大小文件
 log_rotate=
 
+# 日志保留文件个数
+# 默认64
+log_backup_count=64
+
 
 # 持久化存储设置
 [store]

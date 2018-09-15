@@ -11,6 +11,7 @@ def init_config():
     log_level = config.get("LOG_LEVEL", "INFO")
     log_format = config.get("LOG_FORMAT", "%(asctime)s %(process)d %(levelname)s %(message)s")
     log_rotate = config.get("LOG_ROTATE", "")
+    log_backup_Count = config.get("LOG_BACKUP_COUNT", 64)
 
     if log_file == '-':
         main_handler = {
@@ -26,6 +27,7 @@ def init_config():
                 'formatter': 'main',
                 'filename': log_file,
                 'when': "MIDNIGHT",
+                'backupCount': log_backup_Count,
             }
         else:
             units = {"B": 1, "K": 1024, "M": 1024 * 1024, "G": 1024 * 1024 * 1024}
@@ -43,6 +45,7 @@ def init_config():
                     'formatter': 'main',
                     'filename': log_file,
                     'maxBytes': file_bytes,
+                    'backupCount': log_backup_Count,
                 }
             else:
                 main_handler = {

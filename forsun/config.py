@@ -16,6 +16,7 @@ DEFAULT_CONFIG = {
     "LOG_LEVEL": "ERROR",
     "LOG_FORMAT": "%(asctime)s %(process)d %(levelname)s %(message)s",
     "LOG_ROTATE": "",
+    "LOG_BACKUP_COUNT": 64,
 
     "BIND_ADDRESS": "127.0.0.1",
     "PORT": 6458,

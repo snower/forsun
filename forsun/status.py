@@ -46,13 +46,14 @@ class ForsunStatus(object):
         from .store import get_store_names
         from .action import get_driver_names
         from .timer import current
+        from . import config
 
         process = psutil.Process(os.getpid())
         cpu_times = process.cpu_times()
         memory_info = process.memory_info()
 
         info = {
-            "python_version": sys.version,
+            "python_version": sys.version.replace("\n", " "),
             "forsun_version": version,
             "start_time": str(self.start_time),
             "cpu_user": str(cpu_times.user),
@@ -60,8 +61,13 @@ class ForsunStatus(object):
             "mem_rss": str(memory_info.rss),
             "mem_vms": str(memory_info.vms),
             "current_time": str(current()),
+
             "stores": ";".join(get_store_names()),
+            "current_store": config.get("STORE_DRIVER", ""),
             "actions": ";".join(get_driver_names()),
+            "bind_port": "%s:%s" % (config.get("BIND_ADDRESS", ""), config.get("PORT", "")),
+            "http_bind_port": config.get("HTTP_BIND", ""),
+            "extensions": ";".join(config.get("EXTENSIONS", [])),
 
             "connecting_count": str(self.connecting_count),
             "connected_count": str(self.connected_count),

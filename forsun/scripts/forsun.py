@@ -152,7 +152,11 @@ def cmd_info(*args):
         "",
 
         "stores",
+        "current_store",
         "actions",
+        "bind_port",
+        "http_bind_port",
+        "extensions",
         "",
 
         "connecting_count",

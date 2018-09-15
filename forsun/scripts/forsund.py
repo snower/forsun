@@ -25,6 +25,7 @@ parser.add_argument('--driver-mem-store-file', dest='store_mem_store_file', defa
 parser.add_argument('--driver-redis-host', dest='driver_redis_host', default='', type=str, help='store reids driver host (defaul: 127.0.0.1)')
 parser.add_argument('--driver-redis-port', dest='driver_redis_port', default=0, type=int, help='store reids driver port (defaul: 6379)')
 parser.add_argument('--driver-redis-db', dest='driver_redis_db', default=0, type=int, help='store reids driver db (defaul: 0)')
+parser.add_argument('--driver-redis-password', dest='driver_redis_password', default='', type=str, help='store reids driver password (defaul: )')
 parser.add_argument('--driver-redis-prefix', dest='driver_redis_prefix', default='', type=str, help='store reids driver key prefix (defaul: forsun)')
 parser.add_argument('--driver-redis-server-id', dest='driver_redis_server_id', default=0, type=int, help='store reids driver server id (defaul: 0)')
 parser.add_argument('--extension-path', dest='extension_path', default='', type=str, help='extension path')
@@ -75,6 +76,8 @@ def main():
         config.set("STORE_REDIS_PORT", args.driver_redis_port)
     if args.driver_redis_db:
         config.set("STORE_REDIS_DB", args.driver_redis_db)
+    if args.driver_redis_password:
+        config.set("STORE_REDIS_PASSWORD", args.driver_redis_password)
     if args.driver_redis_prefix:
         config.set("STORE_REDIS_PREFIX", args.driver_redis_prefix)
     if args.driver_redis_server_id:

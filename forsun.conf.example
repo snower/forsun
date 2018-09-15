@@ -38,6 +38,9 @@ redis_host=127.0.0.1
 redis_port=6379
 # 保存计时器redis数据库
 redis_db=0
+# 保存计时器的redis密码
+# 默认无密码
+STORE_REDIS_PASSWORD=
 # 保存计时器redis key前缀
 redis_prefix=forsun
 # 保存计时器redis forusn服务ID

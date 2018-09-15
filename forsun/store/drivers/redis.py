@@ -151,13 +151,13 @@ class RedisStore(Store):
         host = config.get("STORE_REDIS_HOST", "127.0.0.1")
         port = config.get("STORE_REDIS_PORT", 6379)
         selected_db = config.get("STORE_REDIS_DB", 0)
-        password = config.get("password", None)
+        password = config.get("STORE_REDIS_PASSWORD", None)
 
         self.db = RedisClient(
             host=host,
             port=port,
             selected_db=selected_db,
-            password = password,
+            password = password or None,
             max_connections=int(config.get("STORE_REDIS_MAX_CONNECTIONS", 8)),
             client_timeout=int(config.get("STORE_REDIS_CLIENT_TIMEOUT", 7200)),
             bulk_size=int(config.get("STORE_REDIS_BULK_SIZE", 5)),

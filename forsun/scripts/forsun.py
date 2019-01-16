@@ -186,6 +186,10 @@ def cmd_info(*args):
         "action_executed_error_count",
         "action_retried_count",
         "",
+
+        "timer_loop_count",
+        "timer_loop_ready_error_count",
+        "",
     ]
 
     for key in keys:

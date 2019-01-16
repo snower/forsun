@@ -34,6 +34,8 @@ class ForsunStatus(object):
         self.action_executed_count = 0
         self.action_executed_error_count = 0
         self.action_retried_count = 0
+        self.timer_loop_count = 0
+        self.timer_loop_ready_error_count = 0
         self.customs = {}
 
     def inc(self, key, value = 1):
@@ -89,6 +91,9 @@ class ForsunStatus(object):
             "action_executed_count": str(self.action_executed_count),
             "action_executed_error_count": str(self.action_executed_error_count),
             "action_retried_count": str(self.action_retried_count),
+
+            "timer_loop_count": str(self.timer_loop_count),
+            "timer_loop_ready_error_count": str(self.timer_loop_ready_error_count),
         }
 
         for key, value in self.customs.items():

@@ -8,6 +8,7 @@ import traceback
 import logging
 import threading
 from collections import deque
+from .status import forsun_status
 
 __time_out_callback = None
 __exit_callback = None
@@ -21,6 +22,9 @@ def exit_handler(signum, frame):
     __queues.append((__exit_callback, tuple()))
     if not __queue_ready_event.is_set():
         __queue_ready_event.set()
+    else:
+        forsun_status.timer_loop_ready_error_count += 1
+        print("timer exit_handler loop runing %s" % __queues)
 
 def handler(signum, frame):
     global __current_time
@@ -28,6 +32,9 @@ def handler(signum, frame):
     __queues.append((__time_out_callback, (__current_time,)))
     if not __queue_ready_event.is_set():
         __queue_ready_event.set()
+    else:
+        forsun_status.timer_loop_ready_error_count += 1
+        print("timer handler loop runing %s" % __queues)
 
 def reset():
     global __time_out_callback, __exit_callback, __queues, __queue_ready_event, __is_stop, __current_time
@@ -69,7 +76,8 @@ def loop():
                 __queue_ready_event.clear()
 
             if not __queues:
-                __queue_ready_event.wait(0.7)
+                __queue_ready_event.wait(1.3)
+            forsun_status.timer_loop_count += 1
         except KeyboardInterrupt:
             if __exit_callback and callable(__exit_callback):
                 __exit_callback()

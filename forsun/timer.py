@@ -24,7 +24,6 @@ def exit_handler(signum, frame):
         __queue_ready_event.set()
     else:
         forsun_status.timer_loop_ready_error_count += 1
-        print("timer exit_handler loop runing %s" % __queues)
 
 def handler(signum, frame):
     global __current_time
@@ -34,7 +33,6 @@ def handler(signum, frame):
         __queue_ready_event.set()
     else:
         forsun_status.timer_loop_ready_error_count += 1
-        print("timer handler loop runing %s" % __queues)
 
 def reset():
     global __time_out_callback, __exit_callback, __queues, __queue_ready_event, __is_stop, __current_time

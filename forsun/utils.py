@@ -2,42 +2,20 @@
 # 15/7/4
 # create by: snower
 
-import sys
+string_type = (str, bytes)
+unicode_type = str
+bytes_type = bytes
+number_type = int
 
-if sys.version_info[0] >= 3:
-    is_py3 = True
-    string_type = (str, bytes)
-    unicode_type = str
-    bytes_type = bytes
-    number_type = int
+def ensure_bytes(s):
+    if isinstance(s, str):
+        return s.encode("utf-8")
+    return bytes(s)
 
-    def ensure_bytes(s):
-        if isinstance(s, str):
-            return s.encode("utf-8")
-        return bytes(s)
-
-    def ensure_unicode(s):
-        if isinstance(s, bytes):
-            return s.decode("utf-8")
-        return str(s)
-else:
-    is_py3 = False
-    string_type = (str, unicode)
-    unicode_type = unicode
-    bytes_type = str
-    number_type = (int, long)
-
-    def ensure_bytes(s):
-        if isinstance(s, unicode):
-            return s.encode("utf-8")
-        return str(s)
-
-    def ensure_unicode(s):
-        if isinstance(s, unicode):
-            return s
-        if isinstance(s, str):
-            return s.decode("utf-8")
-        return str(s).decode("utf-8")
+def ensure_unicode(s):
+    if isinstance(s, bytes):
+        return s.decode("utf-8")
+    return str(s)
 
 class ExtensionsNotFound(Exception): pass
 

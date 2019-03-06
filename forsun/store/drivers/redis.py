@@ -11,7 +11,6 @@ import tornadis
 from ... import config
 from ...plan import Plan
 from ..store import Store
-from ...utils import is_py3
 from ... import timer
 
 class HookPeriodicCallback(PeriodicCallback):
@@ -230,10 +229,7 @@ class RedisStore(Store):
         res = yield self.db.hgetall("".join([self.prefix, ":time:", str(ts)]))
         if not res:
             raise gen.Return([])
-        if is_py3:
-            raise gen.Return([str(res[i], "utf-8") for i in range(0, len(res), 2)])
-        else:
-            raise gen.Return([res[i] for i in range(0, len(res), 2)])
+        raise gen.Return([str(res[i], "utf-8") for i in range(0, len(res), 2)])
 
     @gen.coroutine
     def delete_time_plans(self, ts):
@@ -244,7 +240,4 @@ class RedisStore(Store):
     def get_plan_keys(self, prefix = ""):
         prefix_len = len(self.prefix + ":plan:")
         res = yield self.db.keys("".join([self.prefix, ":plan:", prefix, "*"]))
-        if is_py3:
-            raise gen.Return([str(r, "utf-8")[prefix_len: ] for r in res])
-        else:
-            raise gen.Return([r[prefix_len: ] for r in res])
+        raise gen.Return([str(r, "utf-8")[prefix_len: ] for r in res])

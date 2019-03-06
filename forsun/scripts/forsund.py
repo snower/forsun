@@ -10,6 +10,7 @@ import argparse
 import multiprocessing
 import atexit
 from ..forsun import config
+from ..utils import is_py3
 
 parser = argparse.ArgumentParser(description='High-performance timing scheduling service')
 parser.add_argument('--conf', dest='conf', default="", help='conf filename')
@@ -91,7 +92,10 @@ def main():
     if args.demon:
         p = multiprocessing.Process(target = serve, name=" ".join(sys.argv))
         p.start()
-        atexit._clear()
+        if is_py3:
+            atexit._clear()
+        else:
+            atexit._exithandlers = []
     else:
         serve(False)
 

@@ -13,12 +13,12 @@ RUN apt-get update \
     && apt-get install -y python \
     && apt-get install -y python-pip \
     && apt-get install -y redis-server \
-    && pip install tornado==5.0 \
+    && pip install tornado==5.1 \
     && pip install thrift==0.11.0 \
     && pip install torthrift==0.2.4 \
-    && pip install tornadis==0.8.0 \
+    && pip install tornadis==0.8.1 \
     && pip install msgpack==0.5.1 \
-    && pip install forsun==0.0.6 \
+    && pip install forsun==0.1.0 \
     && pip install beanstalkt==0.7.0 \
     && pip install pymysql==0.7.10 \
     && pip install tormysql==0.3.7 \

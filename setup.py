@@ -5,10 +5,10 @@
 import os
 from setuptools import find_packages, setup
 
-version = "0.0.9"
+version = "0.1.0"
 
 if os.path.exists("README.rst"):
-    with open("README.rst") as fp:
+    with open("README.rst", encoding="utf-8") as fp:
         long_description = fp.read()
 else:
     long_description = ''
@@ -23,10 +23,10 @@ setup(
     packages=find_packages(),
     zip_safe=False,
     install_requires=[
-        'tornado>=5.0',
+        'tornado>=5.0, <=5.1',
         'thrift==0.11.0',
         'torthrift>=0.2.4',
-        'tornadis>=0.8.0',
+        'tornadis>=0.8.0, <=0.8.1',
         'greenlet>=0.4.2',
         'msgpack>=0.5.1',
         'pytz>=2017.3',

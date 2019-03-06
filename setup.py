@@ -3,13 +3,18 @@
 # create by: snower
 
 import os
+import sys
 from setuptools import find_packages, setup
 
 version = "0.1.0"
 
 if os.path.exists("README.rst"):
-    with open("README.rst", encoding="utf-8") as fp:
-        long_description = fp.read()
+    if sys.version_info[0] >= 3:
+        with open("README.rst", encoding="utf-8") as fp:
+            long_description = fp.read()
+    else:
+        with open("README.rst") as fp:
+            long_description = fp.read()
 else:
     long_description = ''
 

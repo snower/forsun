@@ -152,6 +152,7 @@ class MemStore(Store):
 
     @gen.coroutine
     def get_plan_keys(self, prefix = ""):
+        prefix = prefix.rstrip("\n\t *")
         keys = []
         for key in self.plans:
             if key.startswith(prefix):

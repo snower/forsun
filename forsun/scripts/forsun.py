@@ -101,6 +101,9 @@ def cmd_set(key, seconds, minutes, hours, days, months, weeks, action, params_st
             is_timeout = True
             break
 
+    if action in ("sh", "bash"):
+        action = "shell"
+
     params = {}
     for cmd, args in parse_cmd(params_str):
         if isinstance(cmd, tuple):

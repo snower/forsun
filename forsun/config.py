@@ -13,7 +13,7 @@ __config = {}
 
 DEFAULT_CONFIG = {
     "LOG_FILE": "/var/log/forsun.log",
-    "LOG_LEVEL": "ERROR",
+    "LOG_LEVEL": "INFO",
     "LOG_FORMAT": "%(asctime)s %(process)d %(levelname)s %(message)s",
     "LOG_ROTATE": "",
     "LOG_BACKUP_COUNT": 64,

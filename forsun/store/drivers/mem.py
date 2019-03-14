@@ -125,12 +125,12 @@ class MemStore(Store):
 
     @gen.coroutine
     def get_time_plan(self, next_time, key):
-        status = self.time_plans[next_time][key]
+        status = self.time_plans[next_time].get(key, 0)
         raise gen.Return(status)
 
     @gen.coroutine
     def set_time_plan(self, next_time, key, status):
-        last_status = self.time_plans[next_time][key]
+        last_status = self.time_plans[next_time].get(key, 0)
         self.time_plans[next_time][key] = status
         raise gen.Return(last_status)
 

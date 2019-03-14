@@ -111,6 +111,13 @@ def cmd_set(key, seconds, minutes, hours, days, months, weeks, action, params_st
         else:
             params[cmd] = args
 
+    if action == "shell":
+        if "cmd" not in params:
+            params = {"cmd": params_str}
+    elif action == "http":
+        if "url" not in params:
+            params = {"url": params_str}
+
     if is_timeout:
         def parse_time(ct, count):
             if not ct.startswith("*/"):

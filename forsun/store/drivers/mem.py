@@ -22,7 +22,7 @@ class MemStore(Store):
         self.plans = {}
         self.time_plans = defaultdict(dict)
         self.current_time = int(time.mktime(time.gmtime()))
-        self.store_file = config.get("STORE_MEM_STORE_FILE", "/tmp/forsun.session")
+        self.store_file = config.get("STORE_MEM_STORE_FILE", "~/.forsun.dump")
         self.store_time_rate = config.get("STORE_MEM_TIME_RATE", 1)
         self.store_waited = False
 

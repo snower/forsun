@@ -6,7 +6,7 @@ import os
 import sys
 from setuptools import find_packages, setup
 
-version = "0.1.0"
+version = "0.1.1"
 
 if os.path.exists("README.rst"):
     if sys.version_info[0] >= 3:

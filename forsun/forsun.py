@@ -276,13 +276,16 @@ class Forsun(object):
                 plans.append(plan)
         raise gen.Return(plans)
 
-    def serve(self):
+    def serve(self, callback = None):
         try:
             def init():
                 self.ioloop = IOLoop.current()
                 self.ioloop.add_callback(self.init)
                 self.ioloop.add_callback(logging.info, "forsun ready %s", os.getpid())
                 self.read_event.set()
+
+                if callback and callable(callback):
+                    self.ioloop.add_callback(lambda : callback(self))
 
             self.server.start(init)
             self.read_event.wait()
@@ -291,12 +294,15 @@ class Forsun(object):
         except KeyboardInterrupt:
             self.exit()
 
-    def exit(self):
+    def exit(self, callback = None):
         @gen.coroutine
         def on_exit():
             yield self.uninit()
             self.server.stop()
             timer.stop()
+
+            if callback and callable(callback):
+                callback(self)
             logging.info("stoped current time %s", timer.current())
 
         logging.info("stoping current time %s", timer.current())

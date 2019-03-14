@@ -63,11 +63,11 @@ def init_config():
             }
         },
         "handlers": {
-            "main": main_handler,
+            "logger": main_handler,
         },
         "loggers": {
             "": {
-                'handlers': ['main'],
+                'handlers': ['logger'],
                 'level': log_level
             },
             "tornado.application": {
@@ -80,15 +80,15 @@ def init_config():
                 'level': log_level
             },
             "tornadis.pool": {
-                'handlers': ['main'],
+                'handlers': ['logger'],
                 'level': "WARNING"
             },
             "tornadis.client": {
-                'handlers': ['main'],
+                'handlers': ['logger'],
                 'level': "WARNING"
             },
             "tornadis.connection": {
-                'handlers': ['main'],
+                'handlers': ['logger'],
                 'level': "WARNING"
             },
         }

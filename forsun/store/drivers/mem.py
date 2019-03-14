@@ -68,7 +68,9 @@ class MemStore(Store):
                     b"current_time": self.current_time if saved_current_time else 0,
                 })
                 fp.write(data)
-            logging.info("store mem save session %s", self.store_file)
+
+            if saved_current_time:
+                logging.info("store mem save session %s", self.store_file)
         except Exception as e:
             logging.error("store mem save session error: %s %s", self.store_file, e)
 

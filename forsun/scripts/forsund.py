@@ -32,21 +32,6 @@ parser.add_argument('--driver-redis-server-id', dest='driver_redis_server_id', d
 parser.add_argument('--extension-path', dest='extension_path', default='', type=str, help='extension path')
 parser.add_argument('--extension', dest='extensions', default=[], action="append", type=str, help='extension name')
 
-def serve(demon = True):
-    if demon:
-        sys.stdin.close()
-        sys.stdin = open(os.devnull)
-
-        sys.stdout.close()
-        sys.stdout = open(os.devnull)
-
-        sys.stderr.close()
-        sys.stderr = open(os.devnull)
-
-    from ..forsun import Forsun
-    forsun = Forsun()
-    forsun.serve()
-
 def main():
     args = parser.parse_args()
 
@@ -91,15 +76,41 @@ def main():
 
 
     if not args.nodemon:
-        p = multiprocessing.Process(target = serve, name=" ".join(sys.argv))
+        from ..forsun import Forsun
+
+        def on_start(forsun):
+            print("forsund started by pid %s" % p.pid)
+            sys.stdin.close()
+            sys.stdin = open(os.devnull)
+
+            sys.stdout.close()
+            sys.stdout = open(os.devnull, 'w')
+
+            sys.stderr.close()
+            sys.stderr = open(os.devnull, 'w')
+
+        def run():
+            try:
+                forsun = Forsun()
+                forsun.serve(on_start)
+            except Exception as e:
+                print(e)
+                exit()
+
+        p = multiprocessing.Process(target = run, name=" ".join(sys.argv))
         p.start()
         if is_py3:
             atexit._clear()
         else:
             atexit._exithandlers = []
-        print("forsund started by pid %s" % p.pid)
     else:
-        serve(False)
+        try:
+            from ..forsun import Forsun
+            forsun = Forsun()
+            forsun.serve()
+        except Exception as e:
+            print(e)
+            exit()
 
 if __name__ == "__main__":
     main()

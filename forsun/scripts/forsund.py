@@ -22,7 +22,7 @@ parser.add_argument('--nodemon', dest='nodemon', nargs='?', const=True, default=
 parser.add_argument('--log', dest='log_file', default='', type=str, help='log file')
 parser.add_argument('--log-level', dest='log_level', default='', type=str, help='log level (defaul: INFO)')
 parser.add_argument('--driver', dest='driver', default='', type=str, help='store driver mem or redis (defaul: mem)')
-parser.add_argument('--driver-mem-store-file', dest='store_mem_store_file', default='', type=str, help='store mem driver store file (defaul: /tmp/forsun.session)')
+parser.add_argument('--driver-mem-store-file', dest='store_mem_store_file', default='', type=str, help='store mem driver store file (defaul: ~/.forsun.dump)')
 parser.add_argument('--driver-redis-host', dest='driver_redis_host', default='', type=str, help='store reids driver host (defaul: 127.0.0.1)')
 parser.add_argument('--driver-redis-port', dest='driver_redis_port', default=0, type=int, help='store reids driver port (defaul: 6379)')
 parser.add_argument('--driver-redis-db', dest='driver_redis_db', default=0, type=int, help='store reids driver db (defaul: 0)')
@@ -40,7 +40,7 @@ def main():
             config.load_conf(args.conf)
         except Exception as e:
             print("load conf file error ", str(e))
-            exit()
+            exit(1)
 
     if args.log_file:
         config.set("LOG_FILE", args.log_file)
@@ -95,7 +95,7 @@ def main():
                 forsun.serve(on_start)
             except Exception as e:
                 print(e)
-                exit()
+                exit(1)
 
         p = multiprocessing.Process(target = run, name=" ".join(sys.argv))
         p.start()
@@ -110,7 +110,7 @@ def main():
             forsun.serve()
         except Exception as e:
             print(e)
-            exit()
+            exit(1)
 
 if __name__ == "__main__":
     main()

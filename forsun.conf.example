@@ -37,8 +37,8 @@ driver=mem
 # 转态保留时间
 status_expried = 0
 
-# 内存持久化存储文件
-mem_store_file=/tmp/forsun.session
+# 内存持久化存储文件(默认: ~/.forsun.dump)
+mem_store_file=
 
 # 内存持久化延时保存时间比率,计算方式为计时器个数开方乘以延时保存时间比率,默认值1
 mem_time_rate=1

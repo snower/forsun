@@ -17,7 +17,7 @@ parser.add_argument('--conf', dest='conf', default="", help='conf filename')
 parser.add_argument('--bind', dest='bind_host', default="", help='bind host (default: 127.0.0.1)')
 parser.add_argument('--port', dest='bind_port', default=0, type=int, help='bind port (default: 6458)')
 parser.add_argument('--http', dest='http_bind', default="", help='bind http server (default: ) example: 127.0.0.1:80')
-parser.add_argument('--demon', dest='demon', nargs='?', const=True, default=False, type=bool, help='run demon mode')
+parser.add_argument('--nodemon', dest='nodemon', nargs='?', const=True, default=False, type=bool, help='run no demon mode')
 parser.add_argument('--log', dest='log_file', default='', type=str, help='log file')
 parser.add_argument('--log-level', dest='log_level', default='', type=str, help='log level (defaul: INFO)')
 parser.add_argument('--driver', dest='driver', default='', type=str, help='store driver mem or redis (defaul: mem)')
@@ -89,13 +89,14 @@ def main():
         config.set("EXTENSIONS", args.extensions)
 
 
-    if args.demon:
+    if not args.nodemon:
         p = multiprocessing.Process(target = serve, name=" ".join(sys.argv))
         p.start()
         if is_py3:
             atexit._clear()
         else:
             atexit._exithandlers = []
+        print("forsund started by pid %s" % p.pid)
     else:
         serve(False)
 

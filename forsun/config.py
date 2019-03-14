@@ -26,7 +26,7 @@ DEFAULT_CONFIG = {
     "STORE_DRIVER": "mem",
     "STORE_STATUS_EXPRIED": 0,
 
-    "STORE_MEM_STORE_FILE": "~/.forsun.dump",
+    "STORE_MEM_STORE_FILE": "",
     "STORE_MEM_TIME_RATE": 1,
 
     "STORE_REDIS_HOST": "127.0.0.1",

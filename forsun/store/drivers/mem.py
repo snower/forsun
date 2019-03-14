@@ -2,6 +2,7 @@
 # 18/1/25
 # create by: snower
 
+import os
 import time
 import logging
 import math
@@ -22,7 +23,10 @@ class MemStore(Store):
         self.plans = {}
         self.time_plans = defaultdict(dict)
         self.current_time = int(time.mktime(time.gmtime()))
-        self.store_file = config.get("STORE_MEM_STORE_FILE", "~/.forsun.dump")
+        self.store_file = config.get("STORE_MEM_STORE_FILE", "")
+        if not self.store_file:
+            self.store_file = os.path.join(os.path.expanduser('~'), ".forsun.dump")
+        self.store_file = os.path.abspath(self.store_file)
         self.store_time_rate = config.get("STORE_MEM_TIME_RATE", 1)
         self.store_waited = False
 

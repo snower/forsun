@@ -172,7 +172,7 @@ POST /v1/plan
 
 ```
 # 在03-23 16:35:01执行http get请求http://www.baidu.com/
-curl -X POST -H 'Content-Type: application/json' -d '{"key": "test", "second": 1, "minute": 35, "hour": 16, "day": 23, "month": 3, "action": "http", "params": {"url": "http://www.baidu.com/"}}' http://127.0.0.1:8001/v1/plan
+curl -X POST -H 'Content-Type: application/json' -d '{"key": "test", "seconds": 1, "minute": 35, "hour": 16, "day": 23, "month": 3, "action": "http", "params": {"url": "http://www.baidu.com/"}}' http://127.0.0.1:8001/v1/plan
 
 {"data": {"week": -1, "status": 0, "is_time_out": false, "hour": 16, "current_count": 0, "count": 0, "month": 3, "action": "http", "second": -1, "params": {"url": "http://www.baidu.com/"}, "key": "test", "created_time": 1521764975.0, "next_time": 1521794100, "last_timeout": 0, "day": 23, "minute": 35}, "errcode": 0, "errmsg": ""}
 ```
@@ -185,7 +185,7 @@ PUT /v1/plan
 
 ```
 # 5秒后执行1次http get请求http://www.baidu.com/
-curl -X PUT -H 'Content-Type: application/json' -d '{"key": "test", "second": 5, "minute": 0, "hour": 0, "day": 0, "month": 0, "count": 0, "action": "http", "params": {"url": "http://www.baidu.com/"}}' http://127.0.0.1:8001/v1/plan
+curl -X PUT -H 'Content-Type: application/json' -d '{"key": "test", "seconds": 5, "minute": 0, "hour": 0, "day": 0, "month": 0, "count": 0, "action": "http", "params": {"url": "http://www.baidu.com/"}}' http://127.0.0.1:8001/v1/plan
 
 {"data": {"week": -1, "status": 0, "is_time_out": true, "hour": 0, "current_count": 0, "count": 0, "month": 0, "action": "http", "second": -1, "params": {"url": "http://www.baidu.com/"}, "key": "test", "created_time": 1521765952.0, "next_time": 1521765952, "last_timeout": 0, "day": 0, "minute": 0}, "errcode": 0, "errmsg": ""}
 ```

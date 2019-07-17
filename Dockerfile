@@ -1,6 +1,6 @@
 FROM ubuntu:16.04
 
-MAINTAINER snower  sujian199@gmail.com
+MAINTAINER snower sujian199@gmail.com
 
 VOLUME ['/var/lib/forsun', '/var/log/forsun']
 
@@ -18,7 +18,7 @@ RUN apt-get update \
     && pip install torthrift==0.2.4 \
     && pip install tornadis==0.8.1 \
     && pip install msgpack==0.5.1 \
-    && pip install forsun==0.1.0 \
+    && pip install forsun==0.1.2 \
     && pip install beanstalkt==0.7.0 \
     && pip install pymysql==0.7.10 \
     && pip install tormysql==0.3.7 \

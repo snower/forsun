@@ -41,58 +41,68 @@ class RedisClient(object):
 
     @gen.coroutine
     def execute(self):
-        if self._commands:
-            with (yield self.pool.connected_client()) as client:
-                if isinstance(client, Exception):
-                    logging.error("redis store connect error: %s", client)
-                    raise gen.Return(None)
+        self.current_connections += 1
+        try:
+            connect_error_count = 0
+            while self._commands:
+                with (yield self.pool.connected_client()) as client:
+                    if isinstance(client, Exception):
+                        if self.current_connections != 1:
+                            break
 
-                if self._commands:
-                    commands, self._commands = self._commands[:self.bulk_size], self._commands[self.bulk_size:]
-                    if self._commands:
-                        self.ioloop.add_callback(self.execute)
-
-                    try:
-                        self.current_connections += 1
-                        if len(commands) == 1:
-                            reply = yield client.call(*commands[0][0], **commands[0][1])
-                            if isinstance(reply, Exception):
-                                commands[0][2].set_exception(reply)
-                            else:
-                                commands[0][2].set_result(reply)
+                        logging.error("redis store connect error: %s", client)
+                        connect_error_count += 1
+                        if connect_error_count <= 5:
+                            yield gen.sleep(2)
                         else:
-                            pipeline = tornadis.Pipeline()
+                            commands, self._commands = self._commands, []
                             for command in commands:
-                                pipeline.stack_call(*command[0])
-                            replys = yield client.call(pipeline)
-                            if isinstance(replys, Exception):
-                                for command in commands:
-                                    command[2].set_exception(replys)
-                            else:
-                                if isinstance(replys, (list, tuple)):
-                                    for i in range(len(replys)):
-                                        if isinstance(replys[i], Exception):
-                                            commands[i][2].set_exception(replys[i])
-                                        else:
-                                            commands[i][2].set_result(replys[i])
-                                else:
-                                    for command in commands:
-                                        command[2].set_result(replys)
-                    except Exception as e:
-                        for command in commands:
-                            if not command[2].done():
-                                command[2].set_exception(e)
-                    finally:
-                        self.current_connections -= 1
-                        if self._commands:
+                                command[2].set_exception(client)
+                        continue
+
+                    if self._commands:
+                        commands, self._commands = self._commands[:self.bulk_size], self._commands[self.bulk_size:]
+                        if len(self._commands) > self.bulk_size and self.current_connections < self.max_connections:
                             self.ioloop.add_callback(self.execute)
-                        else:
-                            self.executing = False
+
+                        try:
+                            if len(commands) == 1:
+                                reply = yield client.call(*commands[0][0], **commands[0][1])
+                                if isinstance(reply, Exception):
+                                    commands[0][2].set_exception(reply)
+                                else:
+                                    commands[0][2].set_result(reply)
+                            else:
+                                pipeline = tornadis.Pipeline()
+                                for command in commands:
+                                    pipeline.stack_call(*command[0])
+                                replys = yield client.call(pipeline)
+                                if isinstance(replys, Exception):
+                                    for command in commands:
+                                        command[2].set_exception(replys)
+                                else:
+                                    if isinstance(replys, (list, tuple)):
+                                        for i in range(len(replys)):
+                                            if isinstance(replys[i], Exception):
+                                                commands[i][2].set_exception(replys[i])
+                                            else:
+                                                commands[i][2].set_result(replys[i])
+                                    else:
+                                        for command in commands:
+                                            command[2].set_result(replys)
+                        except Exception as e:
+                            for command in commands:
+                                if not command[2].done():
+                                    command[2].set_exception(e)
+        finally:
+            self.current_connections -= 1
+            if self.current_connections == 0:
+                self.executing = False
 
     def execute_command(self, *args, **kwargs):
         future = Future()
         self._commands.append((args, kwargs, future))
-        if not self.executing and self.current_connections < self.max_connections:
+        if not self.executing:
             self.ioloop.add_callback(self.execute)
             self.executing = True
         return future

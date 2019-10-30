@@ -22,6 +22,7 @@ DEFAULT_CONFIG = {
     "PORT": 6458,
 
     "HTTP_BIND": "",
+    "SERVER_MODE": "TIMER",
 
     "STORE_DRIVER": "mem",
     "STORE_STATUS_EXPRIED": 0,

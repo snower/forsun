@@ -10,6 +10,11 @@ bind_address=127.0.0.1
 # 设置则提供http服务
 http_bind=
 
+# 服务模式
+# TIMER 定时触发及请求处理全节点; AGENT 单纯请求处理节点
+# 默认为TIMER节点
+server_mode=TIMER
+
 # 日志文件地址
 log_file=/var/log/forsun.log
 

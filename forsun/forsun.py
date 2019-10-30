@@ -289,7 +289,10 @@ class Forsun(object):
 
             self.server.start(init)
             self.read_event.wait()
-            timer.start(self.time_out, self.exit)
+            if config.get("SERVER_MODE", "").upper() in ("", "TIMER"):
+                timer.start(self.time_out, self.exit)
+            else:
+                timer.start(lambda ts: None, self.exit)
             timer.loop()
         except KeyboardInterrupt:
             self.exit()

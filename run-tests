@@ -10,7 +10,7 @@ if [ -z "$FORSUND_PS" ]
     then
         FORSUND_ERRORS=$(cat /tmp/forsun.log)
         log_error "forsund start failed for the following reasons:
-                   $FORSUND_ERRORS
+$FORSUND_ERRORS
 please run 'forsund' on your changes before committing."
     exit 1
 fi
@@ -24,8 +24,10 @@ if [ -z "$CMD_SUCCEDS" ]
     then
         FORSUND_ERRORS=$(cat /tmp/forsun.log)
         log_error "forsun shell test failed for the following reasons:
-                   $FORSUND_ERRORS
+$FORSUND_ERRORS
 please run 'forsund' on your changes before committing."
+        ll /tmp/
+        cat /tmp/forsun_test.log
         ps -ef | grep forsun | grep -v grep | awk '{print $2}' | xargs kill -HUP > /dev/null 2>&1
     exit 1
 fi

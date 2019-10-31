@@ -59,6 +59,8 @@ class Forsun(object):
         for extension in extensions:
             try:
                 extension_module, extension_class = "".join(extension.split(".")[:-1]), extension.split(".")[-1]
+                extension_module = extension_module if isinstance(extension_module, str) else extension_module.encode("utf-8")
+                extension_class = extension_class if isinstance(extension_class, str) else extension_class.encode("utf-8")
                 extension_module = __import__(extension_module, globals(), [], [extension_class])
                 extension_class = getattr(extension_module, extension_class)
                 ExtensionManager.add_extension(extension_class)

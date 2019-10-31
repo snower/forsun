@@ -1,0 +1,19 @@
+language: python
+
+python:
+  - "2.7"
+  - "3.5"
+  - "3.6"
+  - "3.7"
+
+services:
+  - redis-server
+
+before_install:
+  - pip install tormysql>=0.3.7
+  - pip install beanstalkt>=0.7.0
+
+install: "pip install -e ."
+
+script:
+  - ./run-tests

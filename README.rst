@@ -1,6 +1,8 @@
 forsun
 ======
 
+|Build Status|
+
 高性能的定时调度服务。
 
 About
@@ -104,3 +106,6 @@ License
 =======
 
 forsun uses the MIT license, see LICENSE file for the details.
+
+.. |Build Status| image:: https://travis-ci.org/snower/forsun.svg?branch=master
+   :target: https://travis-ci.org/snower/forsun

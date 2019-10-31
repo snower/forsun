@@ -19,15 +19,13 @@ echo '#!/bin/bash' > /tmp/forsun_test.sh && echo 'echo success > /tmp/forsun_tes
 chmod +x /tmp/forsun_test.sh
 forsun "set shell */2/1 * * * * * shell 'cmd=/tmp/forsun_test.sh'"
 sleep 3
-CMD_SUCCEDS=$(echo "/tmp/forsun_test.log" | grep "success")
+CMD_SUCCEDS=$(cat /tmp/forsun_test.log | grep "success")
 if [ -z "$CMD_SUCCEDS" ]
     then
         FORSUND_ERRORS=$(cat /tmp/forsun.log)
         log_error "forsun shell test failed for the following reasons:
 $FORSUND_ERRORS
 please run 'forsund' on your changes before committing."
-        ll /tmp/
-        cat /tmp/forsun_test.log
         ps -ef | grep forsun | grep -v grep | awk '{print $2}' | xargs kill -HUP > /dev/null 2>&1
     exit 1
 fi

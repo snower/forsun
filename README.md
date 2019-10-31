@@ -1,6 +1,8 @@
 
 # forsun
 
+[![Build Status](https://travis-ci.org/snower/forsun.svg?branch=master)](https://travis-ci.org/snower/forsun)
+
 高性能的定时调度服务。
 
 使用Linux系统定时器产生精确到秒的定时，长时间运行无误差，支持内存存储和redis持久化存储，轻松支持千万级定时任务调度，支持shell、http、reids、thrift、beanstalk、mysql六种到时触发回调方式，并可以通过扩展轻松自定义回调器。

@@ -22,7 +22,10 @@ sleep 3
 CMD_SUCCEDS=$(echo "/tmp/forsun_test" | grep "success")
 if [ -z "$CMD_SUCCEDS" ]
     then
-        log_error "forsun shell test failed."
+        FORSUND_ERRORS=$(cat /tmp/forsun.log)
+        log_error "forsun shell test failed for the following reasons:
+                   $FORSUND_ERRORS
+please run 'forsund' on your changes before committing."
         ps -ef | grep forsun | grep -v grep | awk '{print $2}' | xargs kill -HUP > /dev/null 2>&1
     exit 1
 fi

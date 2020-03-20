@@ -56,6 +56,8 @@ def main():
 
     if args.driver:
         config.set("STORE_DRIVER", args.driver)
+    if args.store_mem_store_file:
+        config.set("STORE_MEM_STORE_FILE", args.store_mem_store_file)
     if args.driver_redis_host:
         config.set("STORE_REDIS_HOST", args.driver_redis_host)
     if args.driver_redis_port:

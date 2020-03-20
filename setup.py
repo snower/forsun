@@ -33,7 +33,7 @@ setup(
         'torthrift>=0.2.4',
         'tornadis>=0.8.0, <=0.8.1',
         'greenlet>=0.4.2',
-        'msgpack>=0.5.1',
+        'msgpack>=0.5.1, <=0.6.2',
         'pytz>=2017.3',
         'tzlocal>=1.5.1',
         'configparser>=3.5.0',

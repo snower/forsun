@@ -1,4 +1,4 @@
-FROM python:3.6.15
+FROM ubuntu:22.04
 
 MAINTAINER snower sujian199@gmail.com
 
@@ -11,7 +11,10 @@ WORKDIR /forsun
 
 COPY docker/startup.sh /opt/
 
-RUN pip install tornado==5.1 \
+RUN apt update \
+    && apt install -y curl openssl libssl-dev python3 python3-pip \
+    && pip install --upgrade certifi \
+    && pip install tornado==5.1 \
     && pip install thrift==0.11.0 \
     && pip install torthrift==0.2.4 \
     && pip install tornadis==0.8.1 \

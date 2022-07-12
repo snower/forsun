@@ -34,6 +34,10 @@ python setup.py install
 
 ```
 docker run -d -p 6458:6458 -p 9002:9002 sujin190/forsun:latest
+
+# 使用redis持久化
+docker run -d -p 6458:6458 -p 9002:9002 -e ARG_DRIVER=redis -e ARG_DRIVER_REDIS_HOST=127.0.0.1 \
+-e ARG_DRIVER_REDIS_PORT=6379 -e ARG_DRIVER_REDIS_PASSWORD=123456 -e ARG_DRIVER_REDIS_DB=0 sujin190/forsun:latest
 ```
 
 ```

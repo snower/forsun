@@ -5,7 +5,7 @@ services:
     image: redis:5
     container_name: redis
     restart: always
-    command: redis-server --requirepass kgJy4ZDGXwhq2d66
+    command: "redis-server --requirepass kgJy4ZDGXwhq2d66 --save 900 1 --appendonly yes"
     expose:
       - "6379"
 
@@ -16,7 +16,7 @@ services:
     ports:
       - "6458:6458"
       - "9002:9002"
-    command: "dockerize -wait tcp://redis:6379 -timeout 60s /opt/startup.sh"
+    command: "/opt/startup.sh"
     environment:
       ARG_DRIVER: redis
       ARG_DRIVER_REDIS_HOST: redis

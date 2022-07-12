@@ -10,11 +10,11 @@
 使用crontab相似命令创建管理任务，同时Thrift接口创建和取消任务，支持大量语言接入。
 	
 - [安装](#安装)
+- [Docker](#docker)
 - [启动服务](#启动服务)
 - [Bash接口](#bash接口)
 - [Thrift接口](#thrift接口)
 - [HTTP接口](#http接口)
-- [Docker](#docker)
 - [Action参数详解](#action参数详解)
 
 # 安装
@@ -26,6 +26,21 @@ or
 
 git clone https://github.com/snower/forsun.git
 python setup.py install
+```
+
+# Docker
+
+使用docker运行，注意：使用docker运行时，shell和宿主机在同一环境，执行shell时将在docker中运行。
+
+```
+docker run -d -p 6458:6458 -p 9002:9002 sujin190/forsun:latest
+```
+
+```
+# 使用docker-compose
+git clone https://github.com/snower/forsun.git
+cd forsun
+docker-compose up -d
 ```
 
 # 启动服务
@@ -249,24 +264,6 @@ GET /v1/keys
 curl -X GET -H 'Content-Type: application/json' http://127.0.0.1:8001/v1/keys?prefix=t
 
 {"data": [], "errcode": 0, "errmsg": ""}
-```
-
-# Docker
-
-使用docker运行，注意：使用docker运行时，shell和宿主机在同一环境，执行shell时将在docker中运行。
-
-```
-git clone https://github.com/snower/forsun
-cd forsun
-
-#创建保存redis持久化数据文件夹和日志文件夹，可自定义
-mkdir /var/lib/forsun
-mkdir /var/log/forsun
-
-#build
-docker build -t forsun:0.0.4 .
-#start
-docker run -d -p 6458:6458 -p 9002:9002 -v /var/lib/forsun:/var/lib/forsun -v /var/log/forsun:/var/log/forsun forsun:0.0.4
 ```
 
 # Action参数详解

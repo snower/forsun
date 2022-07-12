@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  redis:
+    image: redis:5
+    container_name: redis
+    restart: always
+    command: redis-server --requirepass kgJy4ZDGXwhq2d66
+    expose:
+      - "6379"
+
+  forsun:
+    image: sujin190/forsun:v0.1.4
+    container_name: forsun
+    restart: always
+    ports:
+      - "6458:6458"
+      - "9002:9002"
+    command: "dockerize -wait tcp://redis:6379 -timeout 60s /opt/startup.sh"
+    environment:
+      ARG_DRIVER: redis
+      ARG_DRIVER_REDIS_HOST: redis
+      ARG_DRIVER_REDIS_PASSWORD: kgJy4ZDGXwhq2d66
